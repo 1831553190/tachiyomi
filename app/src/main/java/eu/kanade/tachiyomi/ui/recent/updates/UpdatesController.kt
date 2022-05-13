@@ -6,6 +6,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.view.ActionMode
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import dev.chrisbanes.insetter.applyInsetter
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -19,7 +20,7 @@ import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.databinding.UpdatesControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.RootController
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.ui.manga.chapter.base.BaseChaptersAdapter
@@ -88,10 +89,6 @@ class UpdatesController :
         val layoutManager = LinearLayoutManager(view.context)
         binding.recycler.layoutManager = layoutManager
         binding.recycler.setHasFixedSize(true)
-        adapter = UpdatesAdapter(this@UpdatesController, view.context)
-        binding.recycler.adapter = adapter
-        adapter?.fastScroller = binding.fastScroller
-
         binding.recycler.scrollStateChanges()
             .onEach {
                 // Disable swipe refresh when view is not at the top
@@ -100,6 +97,7 @@ class UpdatesController :
             }
             .launchIn(viewScope)
 
+        binding.swipeRefresh.isRefreshing = true
         binding.swipeRefresh.setDistanceToTriggerSync((2 * 64 * view.resources.displayMetrics.density).toInt())
         binding.swipeRefresh.refreshes()
             .onEach {
@@ -212,7 +210,15 @@ class UpdatesController :
      */
     fun onNextRecentChapters(chapters: List<IFlexible<*>>) {
         destroyActionModeIfNeeded()
-        adapter?.updateDataSet(chapters)
+        if (adapter == null) {
+            adapter = UpdatesAdapter(this@UpdatesController, binding.recycler.context, chapters)
+            binding.recycler.adapter = adapter
+            adapter!!.fastScroller = binding.fastScroller
+        } else {
+            adapter?.updateDataSet(chapters)
+        }
+        binding.swipeRefresh.isRefreshing = false
+        binding.fastScroller.isVisible = true
         binding.recycler.onAnimationsFinished {
             (activity as? MainActivity)?.ready = true
         }
@@ -276,7 +282,7 @@ class UpdatesController :
     }
 
     private fun openManga(chapter: UpdatesItem) {
-        router.pushController(MangaController(chapter.manga).withFadeTransaction())
+        router.pushController(MangaController(chapter.manga))
     }
 
     /**

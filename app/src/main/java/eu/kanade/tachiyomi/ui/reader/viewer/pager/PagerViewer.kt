@@ -66,9 +66,14 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
         set(value) {
             field = value
             if (value) {
-                awaitingIdleViewerChapters?.let {
-                    setChaptersInternal(it)
+                awaitingIdleViewerChapters?.let { viewerChapters ->
+                    setChaptersInternal(viewerChapters)
                     awaitingIdleViewerChapters = null
+                    if (viewerChapters.currChapter.pages?.size == 1) {
+                        adapter.nextTransition?.to?.let {
+                            activity.requestPreloadChapter(it)
+                        }
+                    }
                 }
             }
         }
@@ -92,14 +97,9 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
                 override fun onPageScrollStateChanged(state: Int) {
                     isIdle = state == ViewPager.SCROLL_STATE_IDLE
                 }
-            }
+            },
         )
         pager.tapListener = f@{ event ->
-            if (!config.tappingEnabled) {
-                activity.toggleMenu()
-                return@f
-            }
-
             val pos = PointF(event.rawX / pager.width, event.rawY / pager.height)
             val navigator = config.navigator
 
@@ -134,7 +134,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : BaseViewer {
 
         config.navigationModeChangedListener = {
             val showOnStart = config.navigationOverlayOnStart || config.forceNavigationOverlay
-            activity.binding.navigationOverlay.setNavigation(config.navigator, config.tappingEnabled, showOnStart)
+            activity.binding.navigationOverlay.setNavigation(config.navigator, showOnStart)
         }
     }
 

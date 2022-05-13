@@ -19,6 +19,7 @@ import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
+import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit
 class PagerPageHolder(
     readerThemedContext: Context,
     val viewer: PagerViewer,
-    val page: ReaderPage
+    val page: ReaderPage,
 ) : ReaderPageImageView(readerThemedContext), ViewPagerAdapter.PositionableView {
 
     /**
@@ -228,7 +229,7 @@ class PagerPageHolder(
                             cropBorders = viewer.config.imageCropBorders,
                             zoomStartPosition = viewer.config.imageZoomType,
                             landscapeZoom = viewer.config.landscapeZoom,
-                        )
+                        ),
                     )
                     if (!isAnimated) {
                         pageBackground = background
@@ -238,7 +239,7 @@ class PagerPageHolder(
             .subscribe({}, {})
     }
 
-    private fun process(page: ReaderPage, imageStream: InputStream): InputStream {
+    private fun process(page: ReaderPage, imageStream: BufferedInputStream): InputStream {
         if (!viewer.config.dualPageSplit) {
             return imageStream
         }
@@ -247,7 +248,7 @@ class PagerPageHolder(
             return splitInHalf(imageStream)
         }
 
-        val isDoublePage = ImageUtil.isDoublePage(imageStream)
+        val isDoublePage = ImageUtil.isWideImage(imageStream)
         if (!isDoublePage) {
             return imageStream
         }

@@ -10,7 +10,7 @@ import eu.kanade.tachiyomi.R
 data class DownloadHeaderItem(
     val id: Long,
     val name: String,
-    val size: Int
+    val size: Int,
 ) : AbstractExpandableHeaderItem<DownloadHeaderHolder, DownloadItem>() {
 
     override fun getLayoutRes(): Int {
@@ -19,7 +19,7 @@ data class DownloadHeaderItem(
 
     override fun createViewHolder(
         view: View,
-        adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>
+        adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
     ): DownloadHeaderHolder {
         return DownloadHeaderHolder(view, adapter)
     }
@@ -28,7 +28,7 @@ data class DownloadHeaderItem(
         adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>,
         holder: DownloadHeaderHolder,
         position: Int,
-        payloads: List<Any?>?
+        payloads: List<Any?>?,
     ) {
         holder.bind(this)
     }
@@ -36,7 +36,7 @@ data class DownloadHeaderItem(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is DownloadHeaderItem) {
-            return name == other.name
+            return id == other.id && name == other.name
         }
         return false
     }

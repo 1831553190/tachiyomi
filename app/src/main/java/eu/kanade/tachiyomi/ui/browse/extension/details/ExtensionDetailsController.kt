@@ -31,7 +31,7 @@ import eu.kanade.tachiyomi.source.getPreferenceKey
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.openInBrowser
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.util.preference.DSL
 import eu.kanade.tachiyomi.util.preference.minusAssign
 import eu.kanade.tachiyomi.util.preference.onChange
@@ -55,7 +55,7 @@ class ExtensionDetailsController(bundle: Bundle? = null) :
     private var preferenceScreen: PreferenceScreen? = null
 
     constructor(pkgName: String) : this(
-        bundleOf(PKGNAME_KEY to pkgName)
+        bundleOf(PKGNAME_KEY to pkgName),
     )
 
     init {
@@ -91,7 +91,7 @@ class ExtensionDetailsController(bundle: Bundle? = null) :
         binding.extensionPrefsRecycler.layoutManager = LinearLayoutManager(context)
         binding.extensionPrefsRecycler.adapter = ConcatAdapter(
             ExtensionDetailsHeaderAdapter(presenter),
-            initPreferencesAdapter(context, extension)
+            initPreferencesAdapter(context, extension),
         )
     }
 
@@ -165,9 +165,7 @@ class ExtensionDetailsController(bundle: Bundle? = null) :
             switchSettingsPreference {
                 block()
                 onSettingsClick = View.OnClickListener {
-                    router.pushController(
-                        SourcePreferencesController(source.id).withFadeTransaction()
-                    )
+                    router.pushController(SourcePreferencesController(source.id))
                 }
             }
         } else {
@@ -259,11 +257,11 @@ class ExtensionDetailsController(bundle: Bundle? = null) :
             ?.map { it.baseUrl }
             ?.distinct() ?: emptyList()
 
-        urls.forEach {
+        val cleared = urls.sumOf {
             network.cookieManager.remove(it.toHttpUrl())
         }
 
-        logcat { "Cleared cookies for: ${urls.joinToString()}" }
+        logcat { "Cleared $cleared cookies for: ${urls.joinToString()}" }
     }
 
     private fun Source.isEnabled(): Boolean {

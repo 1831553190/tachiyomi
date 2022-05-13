@@ -23,6 +23,7 @@ import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.schedulers.Schedulers
+import java.io.BufferedInputStream
 import java.io.InputStream
 import java.util.concurrent.TimeUnit
 
@@ -35,7 +36,7 @@ import java.util.concurrent.TimeUnit
  */
 class WebtoonPageHolder(
     private val frame: ReaderPageImageView,
-    viewer: WebtoonViewer
+    viewer: WebtoonViewer,
 ) : WebtoonBaseHolder(frame, viewer) {
 
     /**
@@ -260,8 +261,8 @@ class WebtoonPageHolder(
                     ReaderPageImageView.Config(
                         zoomDuration = viewer.config.doubleTapAnimDuration,
                         minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_FIT_WIDTH,
-                        cropBorders = viewer.config.imageCropBorders
-                    )
+                        cropBorders = viewer.config.imageCropBorders,
+                    ),
                 )
             }
             // Keep the Rx stream alive to close the input stream only when unsubscribed
@@ -272,12 +273,12 @@ class WebtoonPageHolder(
         addSubscription(readImageHeaderSubscription)
     }
 
-    private fun process(imageStream: InputStream): InputStream {
+    private fun process(imageStream: BufferedInputStream): InputStream {
         if (!viewer.config.dualPageSplit) {
             return imageStream
         }
 
-        val isDoublePage = ImageUtil.isDoublePage(imageStream)
+        val isDoublePage = ImageUtil.isWideImage(imageStream)
         if (!isDoublePage) {
             return imageStream
         }

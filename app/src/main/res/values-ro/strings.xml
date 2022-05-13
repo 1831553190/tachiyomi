@@ -121,7 +121,6 @@
     <string name="pref_reader_navigation">Navigare</string>
     <string name="pref_read_with_volume_keys">Butoane de volum</string>
     <string name="pref_read_with_volume_keys_inverted">Inversează butoanele de volum</string>
-    <string name="pref_read_with_tapping">Apăsare</string>
     <string name="pref_reader_theme">Culoare de fundal</string>
     <string name="white_background">Alb</string>
     <string name="black_background">Negru</string>
@@ -289,7 +288,6 @@
     <string name="file_select_cover">Selectează imagine de copertă</string>
     <string name="file_select_backup">Selectează fișierul de rezervă</string>
     <string name="update_check_confirm">Descarcă</string>
-    <string name="update_check_ignore">Ignoră</string>
     <string name="update_check_no_new_updates">Nu sunt exista actualizări noi</string>
     <string name="update_check_look_for_updates">Se caută actualizări…</string>
     <string name="update_check_notification_download_in_progress">Se descarcă…</string>
@@ -472,11 +470,6 @@
     <string name="pref_library_update_refresh_metadata">Actualizează metadata-ul automat</string>
     <string name="action_display_comfortable_grid">Grilă confortabilă</string>
     <string name="action_migrate">Migrează</string>
-    <plurals name="notification_update_error">
-        <item quantity="one">1 actualizare a eșuat</item>
-        <item quantity="few">%1$d actualizări au eșuat</item>
-        <item quantity="other">%1$d actualizări au eșuat</item>
-    </plurals>
     <string name="label_data">Date</string>
     <string name="invalid_backup_file_missing_data">Lipsesc date din fișier.</string>
     <string name="invalid_backup_file">Fișierul de rezerva este invalid</string>
@@ -626,4 +619,7 @@
     <string name="theme_tako">Tako</string>
     <string name="theme_yinyang">Yin și Yang</string>
     <string name="theme_yotsuba">Yotsuba</string>
+    <string name="publishing_finished">Editare finalizată</string>
+    <string name="cancelled">Anulat</string>
+    <string name="on_hiatus">În pauză</string>
 </resources>

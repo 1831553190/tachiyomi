@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Category
 import eu.kanade.tachiyomi.data.library.LibraryUpdateJob
+import eu.kanade.tachiyomi.data.preference.DEVICE_BATTERY_NOT_LOW
 import eu.kanade.tachiyomi.data.preference.DEVICE_CHARGING
 import eu.kanade.tachiyomi.data.preference.DEVICE_ONLY_ON_WIFI
 import eu.kanade.tachiyomi.data.preference.MANGA_HAS_UNREAD
@@ -20,7 +21,7 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.databinding.PrefLibraryColumnsBinding
 import eu.kanade.tachiyomi.ui.base.controller.DialogController
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.category.CategoryController
 import eu.kanade.tachiyomi.util.preference.bindTo
 import eu.kanade.tachiyomi.util.preference.defaultValue
@@ -34,7 +35,6 @@ import eu.kanade.tachiyomi.util.preference.preferenceCategory
 import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
-import eu.kanade.tachiyomi.util.system.isTablet
 import eu.kanade.tachiyomi.widget.materialdialogs.QuadStateTextView
 import eu.kanade.tachiyomi.widget.materialdialogs.setQuadStateMultiChoiceItems
 import kotlinx.coroutines.flow.combine
@@ -83,13 +83,6 @@ class SettingsLibraryController : SettingsController() {
                     }
                     .launchIn(viewScope)
             }
-            if (!context.isTablet()) {
-                switchPreference {
-                    key = Keys.jumpToChapters
-                    titleRes = R.string.pref_jump_to_chapters
-                    defaultValue = false
-                }
-            }
         }
 
         preferenceCategory {
@@ -103,7 +96,7 @@ class SettingsLibraryController : SettingsController() {
                 summary = context.resources.getQuantityString(R.plurals.num_categories, catCount, catCount)
 
                 onClick {
-                    router.pushController(CategoryController().withFadeTransaction())
+                    router.pushController(CategoryController())
                 }
             }
 
@@ -145,7 +138,7 @@ class SettingsLibraryController : SettingsController() {
                     R.string.update_24hour,
                     R.string.update_48hour,
                     R.string.update_72hour,
-                    R.string.update_weekly
+                    R.string.update_weekly,
                 )
                 entryValues = arrayOf("0", "12", "24", "48", "72", "168")
                 summary = "%s"
@@ -159,8 +152,8 @@ class SettingsLibraryController : SettingsController() {
             multiSelectListPreference {
                 bindTo(preferences.libraryUpdateDeviceRestriction())
                 titleRes = R.string.pref_library_update_restriction
-                entriesRes = arrayOf(R.string.connected_to_wifi, R.string.charging)
-                entryValues = arrayOf(DEVICE_ONLY_ON_WIFI, DEVICE_CHARGING)
+                entriesRes = arrayOf(R.string.connected_to_wifi, R.string.charging, R.string.battery_not_low)
+                entryValues = arrayOf(DEVICE_ONLY_ON_WIFI, DEVICE_CHARGING, DEVICE_BATTERY_NOT_LOW)
 
                 visibleIf(preferences.libraryUpdateInterval()) { it > 0 }
 
@@ -177,6 +170,7 @@ class SettingsLibraryController : SettingsController() {
                             when (it) {
                                 DEVICE_ONLY_ON_WIFI -> context.getString(R.string.connected_to_wifi)
                                 DEVICE_CHARGING -> context.getString(R.string.charging)
+                                DEVICE_BATTERY_NOT_LOW -> context.getString(R.string.battery_not_low)
                                 else -> it
                             }
                         }
@@ -342,9 +336,11 @@ class SettingsLibraryController : SettingsController() {
                 .map {
                     when (it.id.toString()) {
                         in preferences.libraryUpdateCategories()
-                            .get() -> QuadStateTextView.State.CHECKED.ordinal
+                            .get(),
+                        -> QuadStateTextView.State.CHECKED.ordinal
                         in preferences.libraryUpdateCategoriesExclude()
-                            .get() -> QuadStateTextView.State.INVERSED.ordinal
+                            .get(),
+                        -> QuadStateTextView.State.INVERSED.ordinal
                         else -> QuadStateTextView.State.UNCHECKED.ordinal
                     }
                 }
@@ -355,7 +351,7 @@ class SettingsLibraryController : SettingsController() {
                 .setQuadStateMultiChoiceItems(
                     message = R.string.pref_library_update_categories_details,
                     items = items,
-                    initialSelected = selected
+                    initialSelected = selected,
                 ) { selections ->
                     selected = selections
                 }

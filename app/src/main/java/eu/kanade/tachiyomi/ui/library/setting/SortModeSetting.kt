@@ -6,12 +6,22 @@ import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 enum class SortModeSetting(val flag: Int) {
     ALPHABETICAL(0b00000000),
     LAST_READ(0b00000100),
-    LAST_CHECKED(0b00001000),
-    UNREAD(0b00001100),
+    LAST_MANGA_UPDATE(0b00001000),
+    UNREAD_COUNT(0b00001100),
     TOTAL_CHAPTERS(0b00010000),
     LATEST_CHAPTER(0b00010100),
+    CHAPTER_FETCH_DATE(0b00011000),
+    DATE_ADDED(0b00011100),
+
+    @Deprecated("Use LAST_MANGA_UPDATE")
+    LAST_CHECKED(0b00001000),
+
+    @Deprecated("Use UNREAD_COUNT")
+    UNREAD(0b00001100),
+
+    @Deprecated("Use CHAPTER_FETCH_DATE")
     DATE_FETCHED(0b00011000),
-    DATE_ADDED(0b00011100);
+    ;
 
     companion object {
         // Mask supports for more sorting flags if necessary

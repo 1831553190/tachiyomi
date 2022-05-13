@@ -26,8 +26,11 @@ object Notifications {
     private const val GROUP_LIBRARY = "group_library"
     const val CHANNEL_LIBRARY_PROGRESS = "library_progress_channel"
     const val ID_LIBRARY_PROGRESS = -101
+    const val ID_LIBRARY_SIZE_WARNING = -103
     const val CHANNEL_LIBRARY_ERROR = "library_errors_channel"
     const val ID_LIBRARY_ERROR = -102
+    const val CHANNEL_LIBRARY_SKIPPED = "library_skipped_channel"
+    const val ID_LIBRARY_SKIPPED = -104
 
     /**
      * Notification channel and ids used by the downloader.
@@ -114,7 +117,7 @@ object Notifications {
                 buildNotificationChannelGroup(GROUP_APK_UPDATES) {
                     setName(context.getString(R.string.label_recent_updates))
                 },
-            )
+            ),
         )
 
         notificationService.createNotificationChannelsCompat(
@@ -129,6 +132,11 @@ object Notifications {
                 },
                 buildNotificationChannel(CHANNEL_LIBRARY_ERROR, IMPORTANCE_LOW) {
                     setName(context.getString(R.string.channel_errors))
+                    setGroup(GROUP_LIBRARY)
+                    setShowBadge(false)
+                },
+                buildNotificationChannel(CHANNEL_LIBRARY_SKIPPED, IMPORTANCE_LOW) {
+                    setName(context.getString(R.string.channel_skipped))
                     setGroup(GROUP_LIBRARY)
                     setShowBadge(false)
                 },
@@ -175,7 +183,7 @@ object Notifications {
                     setGroup(GROUP_APK_UPDATES)
                     setName(context.getString(R.string.channel_ext_updates))
                 },
-            )
+            ),
         )
     }
 }

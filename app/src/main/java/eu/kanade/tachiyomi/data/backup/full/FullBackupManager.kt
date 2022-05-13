@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.backup.full
 import android.content.Context
 import android.net.Uri
 import com.hippo.unifile.UniFile
+import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.backup.AbstractBackupManager
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_CATEGORY
 import eu.kanade.tachiyomi.data.backup.BackupConst.BACKUP_CATEGORY_MASK
@@ -54,9 +55,9 @@ class FullBackupManager(context: Context) : AbstractBackupManager(context) {
 
             backup = Backup(
                 backupManga(databaseManga, flags),
-                backupCategories(),
+                backupCategories(flags),
                 emptyList(),
-                backupExtensionInfo(databaseManga)
+                backupExtensionInfo(databaseManga),
             )
         }
 
@@ -85,9 +86,17 @@ class FullBackupManager(context: Context) : AbstractBackupManager(context) {
                 )
                 ?: throw Exception("Couldn't create backup file")
 
+            if (!file.isFile) {
+                throw IllegalStateException("Failed to get handle on file")
+            }
+
             val byteArray = parser.encodeToByteArray(BackupSerializer, backup!!)
+            if (byteArray.isEmpty()) {
+                throw IllegalStateException(context.getString(R.string.empty_backup_error))
+            }
+
             file.openOutputStream().also {
-                // Force overwrite old file size,
+                // Force overwrite old file
                 (it as? FileOutputStream)?.channel?.truncate(0)
             }.sink().gzip().buffer().use { it.write(byteArray) }
             val fileUri = file.uri
@@ -124,10 +133,15 @@ class FullBackupManager(context: Context) : AbstractBackupManager(context) {
      *
      * @return list of [BackupCategory] to be backed up
      */
-    private fun backupCategories(): List<BackupCategory> {
-        return databaseHelper.getCategories()
-            .executeAsBlocking()
-            .map { BackupCategory.copyFrom(it) }
+    private fun backupCategories(options: Int): List<BackupCategory> {
+        // Check if user wants category information in backup
+        return if (options and BACKUP_CATEGORY_MASK == BACKUP_CATEGORY) {
+            databaseHelper.getCategories()
+                .executeAsBlocking()
+                .map { BackupCategory.copyFrom(it) }
+        } else {
+            emptyList()
+        }
     }
 
     /**
@@ -290,7 +304,7 @@ class FullBackupManager(context: Context) : AbstractBackupManager(context) {
                 }
             }
         }
-        databaseHelper.updateHistoryLastRead(historyToBeUpdated).executeAsBlocking()
+        databaseHelper.upsertHistoryLastRead(historyToBeUpdated).executeAsBlocking()
     }
 
     /**

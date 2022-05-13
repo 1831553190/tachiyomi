@@ -99,7 +99,6 @@
     <string name="pref_reader_navigation">ন্যাভিগেশন</string>
     <string name="pref_read_with_volume_keys">ভলিউম বোতামগুলো</string>
     <string name="pref_read_with_volume_keys_inverted">ভলিউম বোতামগুলো ওল্টান</string>
-    <string name="pref_read_with_tapping">টোকা</string>
     <string name="pref_reader_theme">ব্যাকগ্রাউন্ড রঙ</string>
     <string name="white_background">সাদা</string>
     <string name="black_background">কালো</string>
@@ -239,7 +238,6 @@
     <string name="file_select_cover">প্রচ্ছদ চিত্র নির্বাচন করুন</string>
     <string name="file_select_backup">ব্যাকআপ ফাইল নির্বাচন করুন</string>
     <string name="update_check_confirm">ডাউনলোড</string>
-    <string name="update_check_ignore">এড়িয়ে যান</string>
     <string name="update_check_no_new_updates">নতুন কোন হালনাগাদ নেই</string>
     <string name="update_check_look_for_updates">হালনাগাদের অনুসন্ধান হচ্ছে…</string>
     <string name="update_check_notification_download_in_progress">ডাউনলোড হচ্ছে…</string>
@@ -463,10 +461,6 @@
     <plurals name="update_check_notification_ext_updates">
         <item quantity="one">এক্সটেনশন হালনাগাদ উপলব্ধ</item>
         <item quantity="other">%d এক্সটেনশন হালনাগাদ উপলব্ধ</item>
-    </plurals>
-    <plurals name="notification_update_error">
-        <item quantity="one">১টি হালনাগাদ ব্যর্থ হয়েছে</item>
-        <item quantity="other">%1$dটি হালনাগাদ ব্যর্থ হয়েছে</item>
     </plurals>
     <string name="notification_chapters_multiple">অধ্যায়গুলি %1$s</string>
     <string name="notification_chapters_single_and_more">অধ্যায় %1$s এবং %2$d আরও</string>

@@ -28,7 +28,6 @@
     <string name="black_background">Хура</string>
     <string name="white_background">Шурӑ</string>
     <string name="pref_reader_theme">Ӳкерчĕк хыҫӑн тӗсӗ</string>
-    <string name="pref_read_with_tapping">Пусни</string>
     <string name="filter_mode_screen">Экран</string>
     <string name="filter_mode_multiply">Хутлани</string>
     <string name="ext_language_info">Чӗлхе: %1$s</string>
@@ -140,7 +139,7 @@
     <string name="history">Кун-ҫул</string>
     <string name="chapters">Сыпӑксем</string>
     <string name="categories">Пухмӑшсем</string>
-    <string name="information_empty_library">Санӑн вулавӑш пушӑ. Шыравран вулавӑша кӗнекесем хуш.</string>
+    <string name="information_empty_library">Санӑн вулавӑш пушӑ</string>
     <string name="label_recent_manga">Кун-ҫул</string>
     <string name="label_download_queue">Тиев черечӗ</string>
     <string name="name">Ят</string>
@@ -295,7 +294,6 @@
     <string name="pref_acra_summary">Кирек мӗнле йӑнӑшсене тӳрлетме пулӑшать. Нимӗнле харкам пӗлӗм те ярӑнмасть</string>
     <string name="invalid_download_dir">Йӑнӑшлӑ тиев вырӑнӗ</string>
     <string name="label_downloaded_only">Тиенӗсене ҫеҫ</string>
-    <string name="update_check_ignore">Курмӑш пул</string>
     <string name="file_select_backup">Янтӑв файла суйла</string>
     <string name="dialog_with_checkbox_reset">Ҫак манкӑн пур сыпӑка тасат</string>
     <string name="pref_cutout_short">Каснӑ тӑрӑхра шалашне кӑтарт</string>
@@ -323,10 +321,6 @@
     <string name="file_select_cover">Хуплашка суйла</string>
     <string name="notification_first_add_to_library">Ҫакна тӑвас умӗн манкка санӑн вулавӑша хуш-ха</string>
     <string name="notification_cover_update_failed">Хуплашкана ҫӗнетеймерӗ</string>
-    <plurals name="notification_update_error">
-        <item quantity="one">1 ҫӗнетӳ йӑнӑшӗ</item>
-        <item quantity="other">%1$d ҫӗнетӳ йӑнӑшӗ</item>
-    </plurals>
     <string name="notification_chapters_single_and_more">%1$s сыпӑкӗ тата ытти %2$d</string>
     <string name="notification_chapters_multiple">%1$s сыпӑкӗсем</string>
     <plurals name="notification_chapters_multiple_and_more">

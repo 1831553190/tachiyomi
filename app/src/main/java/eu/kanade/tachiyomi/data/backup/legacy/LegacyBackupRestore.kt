@@ -19,7 +19,6 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
-import okio.source
 import java.util.Date
 
 class LegacyBackupRestore(context: Context, notifier: BackupNotifier) : AbstractBackupRestore<LegacyBackupManager>(context, notifier) {
@@ -28,7 +27,7 @@ class LegacyBackupRestore(context: Context, notifier: BackupNotifier) : Abstract
         // Read the json and create a Json Object,
         // cannot use the backupManager json deserializer one because its not initialized yet
         val backupObject = Json.decodeFromStream<JsonObject>(
-            context.contentResolver.openInputStream(uri)!!
+            context.contentResolver.openInputStream(uri)!!,
         )
 
         // Get parser version
@@ -109,7 +108,7 @@ class LegacyBackupRestore(context: Context, notifier: BackupNotifier) : Abstract
         chapters: List<Chapter>,
         categories: List<String>,
         history: List<DHistory>,
-        tracks: List<Track>
+        tracks: List<Track>,
     ) {
         val dbManga = backupManager.getMangaFromDatabase(manga)
 
@@ -139,7 +138,7 @@ class LegacyBackupRestore(context: Context, notifier: BackupNotifier) : Abstract
         chapters: List<Chapter>,
         categories: List<String>,
         history: List<DHistory>,
-        tracks: List<Track>
+        tracks: List<Track>,
     ) {
         try {
             val fetchedManga = backupManager.fetchManga(source, manga)
@@ -161,7 +160,7 @@ class LegacyBackupRestore(context: Context, notifier: BackupNotifier) : Abstract
         chapters: List<Chapter>,
         categories: List<String>,
         history: List<DHistory>,
-        tracks: List<Track>
+        tracks: List<Track>,
     ) {
         if (!backupManager.restoreChaptersForManga(backupManga, chapters)) {
             updateChapters(source, backupManga, chapters)

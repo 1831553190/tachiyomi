@@ -29,12 +29,12 @@ import coil.request.ImageRequest
 import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.ControllerChangeHandler
 import com.bluelinelabs.conductor.ControllerChangeType
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import dev.chrisbanes.insetter.applyInsetter
 import eu.davidea.flexibleadapter.FlexibleAdapter
 import eu.davidea.flexibleadapter.SelectableAdapter
+import eu.kanade.domain.history.model.HistoryWithRelations
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
@@ -44,6 +44,8 @@ import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.DownloadService
 import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
+import eu.kanade.tachiyomi.data.saver.Image
+import eu.kanade.tachiyomi.data.saver.Location
 import eu.kanade.tachiyomi.data.track.EnhancedTrackService
 import eu.kanade.tachiyomi.data.track.TrackService
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
@@ -57,7 +59,7 @@ import eu.kanade.tachiyomi.ui.base.controller.DialogController
 import eu.kanade.tachiyomi.ui.base.controller.FabController
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
 import eu.kanade.tachiyomi.ui.base.controller.getMainAppBarHeight
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.browse.migration.search.SearchController
 import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceController
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
@@ -85,7 +87,7 @@ import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.util.chapter.NoChaptersException
 import eu.kanade.tachiyomi.util.hasCustomCover
 import eu.kanade.tachiyomi.util.lang.launchIO
-import eu.kanade.tachiyomi.util.storage.getUriCompat
+import eu.kanade.tachiyomi.util.lang.launchUI
 import eu.kanade.tachiyomi.util.system.logcat
 import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
@@ -116,11 +118,13 @@ class MangaController :
     DownloadCustomChaptersDialog.Listener,
     DeleteChaptersDialog.Listener {
 
+    constructor(history: HistoryWithRelations) : this(history.mangaId)
+
     constructor(manga: Manga?, fromSource: Boolean = false) : super(
         bundleOf(
             MANGA_EXTRA to (manga?.id ?: 0),
-            FROM_SOURCE_EXTRA to fromSource
-        )
+            FROM_SOURCE_EXTRA to fromSource,
+        ),
     ) {
         this.manga = manga
         if (manga != null) {
@@ -129,7 +133,7 @@ class MangaController :
     }
 
     constructor(mangaId: Long) : this(
-        Injekt.get<DatabaseHelper>().getManga(mangaId).executeAsBlocking()
+        Injekt.get<DatabaseHelper>().getManga(mangaId).executeAsBlocking(),
     )
 
     @Suppress("unused")
@@ -220,7 +224,7 @@ class MangaController :
     override fun createPresenter(): MangaPresenter {
         return MangaPresenter(
             manga!!,
-            source!!
+            source!!,
         )
     }
 
@@ -259,18 +263,6 @@ class MangaController :
                 .setStableIdMode(ConcatAdapter.Config.StableIdMode.SHARED_STABLE_IDS)
                 .build()
             it.adapter = ConcatAdapter(config, mangaInfoAdapter, chaptersHeaderAdapter, chaptersAdapter)
-
-            // Skips directly to chapters list if navigated to from the library
-            it.post {
-                if (!fromSource && preferences.jumpToChapters()) {
-                    val mainActivityAppBar = (activity as? MainActivity)?.binding?.appbar
-                    (it.layoutManager as LinearLayoutManager).scrollToPositionWithOffset(
-                        1,
-                        mainActivityAppBar?.height ?: 0
-                    )
-                    mainActivityAppBar?.isLifted = true
-                }
-            }
 
             it.scrollStateChanges()
                 .onEach { _ ->
@@ -423,7 +415,7 @@ class MangaController :
         when (item.itemId) {
             R.id.action_share -> shareManga()
             R.id.download_next, R.id.download_next_5, R.id.download_next_10,
-            R.id.download_custom, R.id.download_unread, R.id.download_all
+            R.id.download_custom, R.id.download_unread, R.id.download_all,
             -> downloadChapters(item.itemId)
 
             R.id.action_edit_categories -> onCategoriesClick()
@@ -528,30 +520,11 @@ class MangaController :
         } else {
             val duplicateManga = presenter.getDuplicateLibraryManga(manga)
             if (duplicateManga != null) {
-                showAddDuplicateDialog(
-                    manga,
-                    duplicateManga,
-                )
+                AddDuplicateMangaDialog(this, duplicateManga) { addToLibrary(manga) }
+                    .showDialog(router)
             } else {
                 addToLibrary(manga)
             }
-        }
-    }
-
-    private fun showAddDuplicateDialog(newManga: Manga, libraryManga: Manga) {
-        activity?.let {
-            val source = sourceManager.getOrStub(libraryManga.source)
-            MaterialAlertDialogBuilder(it).apply {
-                setMessage(activity?.getString(R.string.confirm_manga_add_duplicate, source.name))
-                setPositiveButton(activity?.getString(R.string.action_add)) { _, _, ->
-                    addToLibrary(newManga)
-                }
-                setNegativeButton(activity?.getString(R.string.action_cancel)) { _, _, -> }
-                setNeutralButton(activity?.getString(R.string.action_show_manga)) { _, _, ->
-                    router.pushController(MangaController(libraryManga).withFadeTransaction())
-                }
-                setCancelable(true)
-            }.create().show()
         }
     }
 
@@ -559,7 +532,7 @@ class MangaController :
         trackSheet?.show()
     }
 
-    private fun addToLibrary(manga: Manga) {
+    private fun addToLibrary(newManga: Manga) {
         val categories = presenter.getCategories()
         val defaultCategoryId = preferences.defaultCategory()
         val defaultCategory = categories.find { it.id == defaultCategoryId }
@@ -568,7 +541,7 @@ class MangaController :
             // Default category set
             defaultCategory != null -> {
                 toggleFavorite()
-                presenter.moveMangaToCategory(manga, defaultCategory)
+                presenter.moveMangaToCategory(newManga, defaultCategory)
                 activity?.toast(activity?.getString(R.string.manga_added_library))
                 activity?.invalidateOptionsMenu()
             }
@@ -576,14 +549,14 @@ class MangaController :
             // Automatic 'Default' or no categories
             defaultCategoryId == 0 || categories.isEmpty() -> {
                 toggleFavorite()
-                presenter.moveMangaToCategory(manga, null)
+                presenter.moveMangaToCategory(newManga, null)
                 activity?.toast(activity?.getString(R.string.manga_added_library))
                 activity?.invalidateOptionsMenu()
             }
 
             // Choose a category
             else -> {
-                val ids = presenter.getMangaCategoryIds(manga)
+                val ids = presenter.getMangaCategoryIds(newManga)
                 val preselected = categories.map {
                     if (it.id in ids) {
                         QuadStateTextView.State.CHECKED.ordinal
@@ -592,7 +565,7 @@ class MangaController :
                     }
                 }.toTypedArray()
 
-                showChangeCategoryDialog(manga, categories, preselected)
+                showChangeCategoryDialog(newManga, categories, preselected)
             }
         }
 
@@ -604,12 +577,12 @@ class MangaController :
                 .forEach { service ->
                     launchIO {
                         try {
-                            service.match(manga)?.let { track ->
+                            service.match(newManga)?.let { track ->
                                 presenter.registerTracking(track, service as TrackService)
                             }
                         } catch (e: Exception) {
                             logcat(LogPriority.WARN, e) {
-                                "Could not match manga: ${manga.title} with service $service"
+                                "Could not match manga: ${newManga.title} with service $service"
                             }
                         }
                     }
@@ -659,7 +632,7 @@ class MangaController :
                     super.postDestroy(controller)
                     dialog = null
                 }
-            }
+            },
         )
         dialog?.showDialog(router)
     }
@@ -682,7 +655,7 @@ class MangaController :
      * @param query the search query to pass to the search controller
      */
     fun performGlobalSearch(query: String) {
-        router.pushController(GlobalSearchController(query).withFadeTransaction())
+        router.pushController(GlobalSearchController(query))
     }
 
     /**
@@ -701,7 +674,7 @@ class MangaController :
                 previousController.search(query)
             }
             is UpdatesController,
-            is HistoryController -> {
+            is HistoryController, -> {
                 // Manually navigate to LibraryController
                 router.handleBack()
                 (router.activity as MainActivity).setSelectedNavItem(R.id.nav_library)
@@ -768,20 +741,30 @@ class MangaController :
                     super.postDestroy(controller)
                     dialog = null
                 }
-            }
+            },
         )
         dialog?.showDialog(router)
     }
 
     fun shareCover() {
         try {
+            val manga = manga!!
             val activity = activity!!
             useCoverAsBitmap(activity) { coverBitmap ->
-                val cover = presenter.shareCover(activity, coverBitmap)
-                val uri = cover.getUriCompat(activity)
-                startActivity(uri.toShareIntent(activity))
+                viewScope.launchIO {
+                    val uri = presenter.saveImage(
+                        image = Image.Cover(
+                            bitmap = coverBitmap,
+                            name = manga.title,
+                            location = Location.Cache,
+                        ),
+                    )
+                    launchUI {
+                        startActivity(uri.toShareIntent(activity))
+                    }
+                }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
             activity?.toast(R.string.error_sharing_cover)
         }
@@ -789,12 +772,23 @@ class MangaController :
 
     fun saveCover() {
         try {
+            val manga = manga!!
             val activity = activity!!
             useCoverAsBitmap(activity) { coverBitmap ->
-                presenter.saveCover(activity, coverBitmap)
-                activity.toast(R.string.cover_saved)
+                viewScope.launchIO {
+                    presenter.saveImage(
+                        image = Image.Cover(
+                            bitmap = coverBitmap,
+                            name = manga.title,
+                            location = Location.Pictures.create(),
+                        ),
+                    )
+                    launchUI {
+                        activity.toast(R.string.cover_saved)
+                    }
+                }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
             activity?.toast(R.string.error_saving_cover)
         }
@@ -817,9 +811,9 @@ class MangaController :
             startActivityForResult(
                 Intent.createChooser(
                     intent,
-                    resources?.getString(R.string.file_select_cover)
+                    resources?.getString(R.string.file_select_cover),
                 ),
-                REQUEST_IMAGE_OPEN
+                REQUEST_IMAGE_OPEN,
             )
         } else {
             activity?.toast(R.string.notification_first_add_to_library)
@@ -860,7 +854,7 @@ class MangaController :
     private fun migrateManga() {
         val controller = SearchController(presenter.manga)
         controller.targetController = this
-        router.pushController(controller.withFadeTransaction())
+        router.pushController(controller)
     }
 
     // Manga info - end
@@ -931,7 +925,7 @@ class MangaController :
                 val activityOptions = ActivityOptions.makeSceneTransitionAnimation(
                     activity,
                     sharedElement,
-                    ReaderActivity.SHARED_ELEMENT_NAME
+                    ReaderActivity.SHARED_ELEMENT_NAME,
                 )
                 startActivity(
                     intent.apply {
@@ -1236,7 +1230,7 @@ class MangaController :
     private fun showCustomDownloadDialog() {
         DownloadCustomChaptersDialog(
             this,
-            presenter.allChapters.size
+            presenter.allChapters.size,
         ).showDialog(router)
     }
 

@@ -15,7 +15,7 @@ interface CategoryQueries : DbProvider {
             Query.builder()
                 .table(CategoryTable.TABLE)
                 .orderBy(CategoryTable.COL_ORDER)
-                .build()
+                .build(),
         )
         .prepare()
 
@@ -25,15 +25,13 @@ interface CategoryQueries : DbProvider {
             RawQuery.builder()
                 .query(getCategoriesForMangaQuery())
                 .args(manga.id)
-                .build()
+                .build(),
         )
         .prepare()
 
     fun insertCategory(category: Category) = db.put().`object`(category).prepare()
 
     fun insertCategories(categories: List<Category>) = db.put().objects(categories).prepare()
-
-    fun deleteCategory(category: Category) = db.delete().`object`(category).prepare()
 
     fun deleteCategories(categories: List<Category>) = db.delete().objects(categories).prepare()
 }

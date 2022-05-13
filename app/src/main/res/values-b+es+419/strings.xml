@@ -98,7 +98,7 @@
     <string name="pref_download_new">Descargar capítulos nuevos</string>
     <string name="fifth_to_last">Quinto al último capítulo</string>
     <string name="fourth_to_last">Cuarto al último capítulo</string>
-    <string name="third_to_last">Antepenúltimo capítulo</string>
+    <string name="third_to_last">Tercer al último capítulo leído</string>
     <string name="second_to_last">Penúltimo capítulo leido</string>
     <string name="last_read_chapter">Último capítulo leído</string>
     <string name="disabled">Deshabilitado</string>
@@ -149,7 +149,6 @@
     <string name="white_background">Blanco</string>
     <string name="pref_reader_theme">Color de fondo</string>
     <string name="pref_read_with_long_tap">Mostrar toque largo</string>
-    <string name="pref_read_with_tapping">Tocar pantalla</string>
     <string name="pref_read_with_volume_keys_inverted">Invertir teclas de volumen</string>
     <string name="pref_read_with_volume_keys">Teclas de volumen</string>
     <string name="pref_reader_navigation">Navegación</string>
@@ -206,7 +205,7 @@
     <string name="default_category">Categoría por defecto</string>
     <string name="pref_library_update_refresh_metadata_summary">Comprobar nueva portada y los detalles cuando actualizes la biblioteca</string>
     <string name="pref_library_update_refresh_metadata">Actualizar metadatos automáticamente</string>
-    <string name="pref_update_only_non_completed">Series en progreso</string>
+    <string name="pref_update_only_non_completed">Series completadas</string>
     <string name="charging">Cargando</string>
     <string name="pref_library_update_restriction">Restricciones de actualización automática</string>
     <string name="update_weekly">Semanal</string>
@@ -251,7 +250,7 @@
     <string name="secure_screen_summary">Ocultar contenido de la aplicación al cambiar entre aplicaciones y bloquear las capturas de pantalla</string>
     <string name="secure_screen">Pantalla segura</string>
     <plurals name="lock_after_mins">
-        <item quantity="one">Después de 1 minuto</item>
+        <item quantity="one">Después de %1$s minuto</item>
         <item quantity="other">Después de %1$s minutos</item>
     </plurals>
     <string name="lock_never">Nunca</string>
@@ -365,7 +364,7 @@
     <string name="username">Nombre de usuario</string>
     <string name="login_title">Iniciar sesión en %1$s</string>
     <plurals name="download_queue_summary">
-        <item quantity="one">Queda 1</item>
+        <item quantity="one">Queda %1$s</item>
         <item quantity="other">Quedan %1$s</item>
     </plurals>
     <string name="downloaded_only_summary">Filtrar todo el manga en tu libreria</string>
@@ -417,7 +416,7 @@
 \n\"%1$s\"</string>
     <string name="delete_downloads_for_manga">¿Eliminar capítulos descargados\?</string>
     <plurals name="manga_num_chapters">
-        <item quantity="one">1 capítulo</item>
+        <item quantity="one">%1$s capítulo</item>
         <item quantity="other">%1$s capítulos</item>
     </plurals>
     <string name="manga_info_collapse">Menos</string>
@@ -435,16 +434,11 @@
     <string name="ongoing">En curso</string>
     <string name="description">Descripción</string>
     <string name="update_check_no_new_updates">No hay nuevas actualizaciones disponibles</string>
-    <string name="update_check_ignore">Ignorar</string>
     <string name="update_check_confirm">Descargar</string>
     <string name="file_select_backup">Seleccione el archivo de copia de seguridad</string>
     <string name="file_select_cover">Seleccione la imagen de portada</string>
     <string name="notification_first_add_to_library">Por favor agregue el manga a la biblioteca antes de hacer esto</string>
     <string name="notification_cover_update_failed">Error al actualizar la portada</string>
-    <plurals name="notification_update_error">
-        <item quantity="one">1 actualización fallida</item>
-        <item quantity="other">%1$d actualizaciones fallidas</item>
-    </plurals>
     <plurals name="notification_chapters_multiple_and_more">
         <item quantity="one">Capítulos %1$s y 1 más</item>
         <item quantity="other">Capítulos %1$s y %2$d más</item>
@@ -453,11 +447,11 @@
     <string name="notification_chapters_single_and_more">Capítulo %1$s y %2$d más</string>
     <string name="notification_chapters_single">Capítulo %1$s</string>
     <plurals name="notification_chapters_generic">
-        <item quantity="one">1 nuevo capítulo</item>
+        <item quantity="one">%1$d nuevo capítulo</item>
         <item quantity="other">%1$d nuevos capítulos</item>
     </plurals>
     <plurals name="notification_new_chapters_summary">
-        <item quantity="one">Para 1 título</item>
+        <item quantity="one">Para %d título</item>
         <item quantity="other">Para %d títulos</item>
     </plurals>
     <string name="notification_new_chapters">Nuevos capítulos encontrados</string>
@@ -509,7 +503,7 @@
     <string name="pref_category_reading_mode">Modo de lectura</string>
     <string name="pref_category_theme">Tema</string>
     <plurals name="num_trackers">
-        <item quantity="one">1 rastreador</item>
+        <item quantity="one">%d rastreador</item>
         <item quantity="other">%d rastreadores</item>
     </plurals>
     <string name="channel_errors">Errores</string>
@@ -524,7 +518,7 @@
     <string name="ext_nsfw_short">18+</string>
     <string name="parental_controls_info">Esto no evita que las extensiones no oficiales o potencialmente marcadas incorrectamente muestren contenido para mayores de 18 años dentro de la aplicación.</string>
     <plurals name="missing_chapters_warning">
-        <item quantity="one">Omitiendo 1 capítulo, o la fuente no lo encuentra o se ha filtrado</item>
+        <item quantity="one">Omitiendo %d capítulo, o la fuente no lo encuentra o se ha filtrado</item>
         <item quantity="other">Omitiendo %d capítulos, o la fuente no los encuentra o se han filtrado</item>
     </plurals>
     <string name="share_page_info">%1$s: %2$s, página %3$d</string>
@@ -568,7 +562,7 @@
     <string name="right_and_left_nav">Derecha e izquierda</string>
     <string name="action_display_show_number_of_items">Mostrar cantidad de elementos</string>
     <string name="none">Ninguno</string>
-    <string name="action_show_errors">Presione para ver detalladamente el error</string>
+    <string name="action_show_errors">Presione para ver detalles del error</string>
     <string name="pref_category_auto_download">Descarga automática</string>
     <string name="rotation_landscape">Horizontal</string>
     <string name="rotation_portrait">Vertical</string>
@@ -580,7 +574,7 @@
     <string name="update_check_eol">Está versión de Android ya no está soportada</string>
     <string name="clipboard_copy_error">Falló al copiar en el portapapeles</string>
     <string name="notification_incognito_text">Deshabilitar modo incógnito</string>
-    <string name="pref_dns_over_https">DNS mediante HTTPS</string>
+    <string name="pref_dns_over_https">DNS sobre HTTPS (DoH)</string>
     <string name="backup_restore_content_full">Los datos de la copia de seguridad se restaurarán.
 \n
 \nNecesitarás instalar cualquier extensión que falte e iniciar sesión en los servicios de seguimiento para utilizarlos.</string>
@@ -685,7 +679,6 @@
     <string name="ext_update_all">Actualizar todo</string>
     <string name="connected_to_wifi">Solo con Wi-Fi</string>
     <string name="privacy_policy">Política de privacidad</string>
-    <string name="only_update_restrictions">Actualizado sólo:%s</string>
     <string name="pref_library_update_show_tab_badge">Mostrar número de no leidos en el icono de actualización</string>
     <string name="backup_info">Se recomiendan las copias de seguridad automáticas. Debería tener copias guardadas en otros sitios también.</string>
     <string name="publishing_finished">Publicación terminada</string>
@@ -693,9 +686,32 @@
     <string name="on_hiatus">En hiatus</string>
     <string name="library_errors_help">Si necesitas ayuda arreglando errores en la actualización de la biblioteca, ve a %1$s</string>
     <string name="save_chapter_as_cbz">Guardar como archivo CBZ</string>
-    <string name="pref_update_only_completely_read">Series completamente leídas</string>
-    <string name="pref_library_update_manga_restriction">Restricciones de actualización de la biblioteca</string>
+    <string name="pref_update_only_completely_read">Hay capítulos no leídos</string>
+    <string name="pref_library_update_manga_restriction">Saltar actualización</string>
     <string name="extension_api_error">Error al obtener la lista de extensiones</string>
     <string name="download_queue_size_warning">Advertencia: las descargas en masa pueden causar lentitud en las fuentes y/o bloquear Tachiyomi</string>
     <string name="notification_size_warning">Advertencia: las actualizaciones grandes afectan las fuentes y pueden causar actualizaciones más lentas, además de un mayor uso de batería</string>
+    <string name="action_show_manga">Mostrar manga</string>
+    <string name="action_filter_started">Empezado</string>
+    <string name="action_display_cover_only_grid">Portada-única de la cuadrícula</string>
+    <string name="action_faq_and_guides">Preguntas frecuentes y guías</string>
+    <string name="clear_database_source_item_count">%1$d manga que no pertenece a la biblioteca en la base de datos</string>
+    <string name="confirm_manga_add_duplicate">Tienes una entrada en tu biblioteca con el mismo nombre pero de una fuente diferente (%1$s). 
+\n
+\n¿Todavía desea continuar\?</string>
+    <string name="pref_navigate_pan">Navegar a la panorámica</string>
+    <string name="pref_landscape_zoom">Ampliar imagen horizontal</string>
+    <string name="webtoon_side_padding_5">5%</string>
+    <string name="pref_update_only_started">No hay capítulos leídos</string>
+    <string name="backup_restore_invalid_uri">Error: URI vacío</string>
+    <string name="skipped_reason_completed">Omitido porque la serie está completa</string>
+    <string name="skipped_reason_not_caught_up">Omitido porque hay capítulos sin leer</string>
+    <string name="skipped_reason_not_started">Omitido porque no hay capítulos leídos</string>
+    <string name="learn_more">Más información</string>
+    <string name="channel_skipped">Omitido</string>
+    <string name="notification_update_error">%1$d actualización(es) fallida(s)</string>
+    <string name="notification_update_skipped">%1$d actualización(es) omitida(s)</string>
+    <string name="rotation_reverse_portrait">Retrato inverso</string>
+    <string name="action_move_to_top_all_for_series">Mover la serie al principio</string>
+    <string name="disabled_nav">Desactivado</string>
 </resources>

@@ -90,14 +90,14 @@ abstract class DialogController : Controller {
             RouterTransaction.with(this)
                 .pushChangeHandler(SimpleSwapChangeHandler(false))
                 .popChangeHandler(SimpleSwapChangeHandler(false))
-                .tag(tag)
+                .tag(tag),
         )
     }
 
     /**
      * Dismiss the dialog and pop this controller
      */
-    private fun dismissDialog() {
+    fun dismissDialog() {
         if (dismissed) {
             return
         }

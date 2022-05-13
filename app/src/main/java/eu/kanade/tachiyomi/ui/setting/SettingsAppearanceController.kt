@@ -41,21 +41,21 @@ class SettingsAppearanceController : SettingsController() {
                     entriesRes = arrayOf(
                         R.string.theme_system,
                         R.string.theme_light,
-                        R.string.theme_dark
+                        R.string.theme_dark,
                     )
                     entryValues = arrayOf(
                         Values.ThemeMode.system.name,
                         Values.ThemeMode.light.name,
-                        Values.ThemeMode.dark.name
+                        Values.ThemeMode.dark.name,
                     )
                 } else {
                     entriesRes = arrayOf(
                         R.string.theme_light,
-                        R.string.theme_dark
+                        R.string.theme_dark,
                     )
                     entryValues = arrayOf(
                         Values.ThemeMode.light.name,
-                        Values.ThemeMode.dark.name
+                        Values.ThemeMode.dark.name,
                     )
                 }
 
@@ -93,10 +93,10 @@ class SettingsAppearanceController : SettingsController() {
             }
         }
 
-        preferenceCategory {
-            titleRes = R.string.pref_category_navigation
+        if (context.isTablet()) {
+            preferenceCategory {
+                titleRes = R.string.pref_category_navigation
 
-            if (context.isTablet()) {
                 intListPreference {
                     bindTo(preferences.sideNavIconAlignment())
                     titleRes = R.string.pref_side_nav_icon_alignment
@@ -107,11 +107,6 @@ class SettingsAppearanceController : SettingsController() {
                     )
                     entryValues = arrayOf("0", "1", "2")
                     summary = "%s"
-                }
-            } else {
-                switchPreference {
-                    bindTo(preferences.hideBottomBarOnScroll())
-                    titleRes = R.string.pref_hide_bottom_bar_on_scroll
                 }
             }
         }

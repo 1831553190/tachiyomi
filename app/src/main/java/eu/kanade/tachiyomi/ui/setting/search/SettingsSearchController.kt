@@ -12,7 +12,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.SettingsSearchControllerBinding
 import eu.kanade.tachiyomi.ui.base.controller.NucleusController
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.setting.SettingsController
 
 /**
@@ -82,7 +82,7 @@ class SettingsSearchController :
                     router.popCurrentController()
                     return false
                 }
-            }
+            },
         )
 
         searchView.setOnQueryTextListener(
@@ -96,7 +96,7 @@ class SettingsSearchController :
                     setItems(getResultSet(newText))
                     return false
                 }
-            }
+            },
         )
 
         searchView.setQuery(presenter.preferences.lastSearchQuerySearchSettings().get(), true)
@@ -158,6 +158,6 @@ class SettingsSearchController :
             presenter.preferences.lastSearchQuerySearchSettings().set(it.toString())
         }
 
-        router.pushController(ctrl.withFadeTransaction())
+        router.pushController(ctrl)
     }
 }

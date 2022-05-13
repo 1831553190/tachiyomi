@@ -4,13 +4,14 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.Settings
+import android.webkit.WebStorage
+import android.webkit.WebView
 import androidx.core.net.toUri
 import androidx.preference.PreferenceScreen
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import eu.kanade.tachiyomi.BuildConfig
+import eu.kanade.domain.manga.repository.MangaRepository
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.cache.ChapterCache
-import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.library.LibraryUpdateService
 import eu.kanade.tachiyomi.data.library.LibraryUpdateService.Target
 import eu.kanade.tachiyomi.data.preference.PreferenceValues
@@ -20,7 +21,7 @@ import eu.kanade.tachiyomi.network.PREF_DOH_CLOUDFLARE
 import eu.kanade.tachiyomi.network.PREF_DOH_GOOGLE
 import eu.kanade.tachiyomi.network.PREF_DOH_QUAD9
 import eu.kanade.tachiyomi.ui.base.controller.openInBrowser
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.setting.database.ClearDatabaseController
 import eu.kanade.tachiyomi.util.CrashLogUtil
 import eu.kanade.tachiyomi.util.lang.launchIO
@@ -38,24 +39,32 @@ import eu.kanade.tachiyomi.util.preference.summaryRes
 import eu.kanade.tachiyomi.util.preference.switchPreference
 import eu.kanade.tachiyomi.util.preference.titleRes
 import eu.kanade.tachiyomi.util.system.DeviceUtil
+import eu.kanade.tachiyomi.util.system.isDevFlavor
 import eu.kanade.tachiyomi.util.system.isPackageInstalled
+import eu.kanade.tachiyomi.util.system.logcat
 import eu.kanade.tachiyomi.util.system.powerManager
+import eu.kanade.tachiyomi.util.system.setDefaultSettings
 import eu.kanade.tachiyomi.util.system.toast
+import logcat.LogPriority
 import rikka.sui.Sui
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
 import uy.kohesive.injekt.injectLazy
+import java.io.File
 import eu.kanade.tachiyomi.data.preference.PreferenceKeys as Keys
 
-class SettingsAdvancedController : SettingsController() {
+class SettingsAdvancedController(
+    private val mangaRepository: MangaRepository = Injekt.get(),
+) : SettingsController() {
 
     private val network: NetworkHelper by injectLazy()
     private val chapterCache: ChapterCache by injectLazy()
-    private val db: DatabaseHelper by injectLazy()
 
     @SuppressLint("BatteryLife")
     override fun setupPreferenceScreen(screen: PreferenceScreen) = screen.apply {
         titleRes = R.string.pref_category_advanced
 
-        if (BuildConfig.FLAVOR != "dev") {
+        if (isDevFlavor.not()) {
             switchPreference {
                 key = "acra.enable"
                 titleRes = R.string.pref_enable_acra
@@ -78,7 +87,7 @@ class SettingsAdvancedController : SettingsController() {
             key = Keys.verboseLogging
             titleRes = R.string.pref_verbose_logging
             summaryRes = R.string.pref_verbose_logging_summary
-            defaultValue = false
+            defaultValue = isDevFlavor
 
             onChange {
                 activity?.toast(R.string.requires_app_restart)
@@ -144,7 +153,7 @@ class SettingsAdvancedController : SettingsController() {
                 summaryRes = R.string.pref_clear_database_summary
 
                 onClick {
-                    router.pushController(ClearDatabaseController().withFadeTransaction())
+                    router.pushController(ClearDatabaseController())
                 }
             }
         }
@@ -160,6 +169,12 @@ class SettingsAdvancedController : SettingsController() {
                     network.cookieManager.removeAll()
                     activity?.toast(R.string.cookies_cleared)
                 }
+            }
+            preference {
+                key = "pref_clear_webview_data"
+                titleRes = R.string.pref_clear_webview_data
+
+                onClick { clearWebViewData() }
             }
             intListPreference {
                 key = Keys.dohProvider
@@ -203,6 +218,13 @@ class SettingsAdvancedController : SettingsController() {
                 summaryRes = R.string.pref_refresh_library_tracking_summary
 
                 onClick { LibraryUpdateService.start(context, target = Target.TRACKING) }
+            }
+            preference {
+                key = "pref_reset_viewer_flags"
+                titleRes = R.string.pref_reset_viewer_flags
+                summaryRes = R.string.pref_reset_viewer_flags_summary
+
+                onClick { resetViewerFlags() }
             }
         }
 
@@ -264,17 +286,51 @@ class SettingsAdvancedController : SettingsController() {
     }
 
     private fun clearChapterCache() {
-        if (activity == null) return
+        val activity = activity ?: return
         launchIO {
             try {
                 val deletedFiles = chapterCache.clear()
                 withUIContext {
-                    activity?.toast(resources?.getString(R.string.cache_deleted, deletedFiles))
+                    activity.toast(resources?.getString(R.string.cache_deleted, deletedFiles))
                     findPreference(CLEAR_CACHE_KEY)?.summary =
                         resources?.getString(R.string.used_cache, chapterCache.readableSize)
                 }
             } catch (e: Throwable) {
-                withUIContext { activity?.toast(R.string.cache_delete_error) }
+                logcat(LogPriority.ERROR, e)
+                withUIContext { activity.toast(R.string.cache_delete_error) }
+            }
+        }
+    }
+
+    private fun clearWebViewData() {
+        val activity = activity ?: return
+        try {
+            val webview = WebView(activity)
+            webview.setDefaultSettings()
+            webview.clearCache(true)
+            webview.clearFormData()
+            webview.clearHistory()
+            webview.clearSslPreferences()
+            WebStorage.getInstance().deleteAllData()
+            activity.applicationInfo?.dataDir?.let { File("$it/app_webview/").deleteRecursively() }
+            activity.toast(R.string.webview_data_deleted)
+        } catch (e: Throwable) {
+            logcat(LogPriority.ERROR, e)
+            activity.toast(R.string.cache_delete_error)
+        }
+    }
+
+    private fun resetViewerFlags() {
+        val activity = activity ?: return
+        launchIO {
+            val success = mangaRepository.resetViewerFlags()
+            withUIContext {
+                val message = if (success) {
+                    R.string.pref_reset_viewer_flags_success
+                } else {
+                    R.string.pref_reset_viewer_flags_error
+                }
+                activity.toast(message)
             }
         }
     }

@@ -26,7 +26,7 @@ import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.ui.base.controller.RootController
 import eu.kanade.tachiyomi.ui.base.controller.SearchableNucleusController
 import eu.kanade.tachiyomi.ui.base.controller.TabbedController
-import eu.kanade.tachiyomi.ui.base.controller.withFadeTransaction
+import eu.kanade.tachiyomi.ui.base.controller.pushController
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchController
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaController
@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit
 
 class LibraryController(
     bundle: Bundle? = null,
-    private val preferences: PreferencesHelper = Injekt.get()
+    private val preferences: PreferencesHelper = Injekt.get(),
 ) : SearchableNucleusController<LibraryControllerBinding, LibraryPresenter>(bundle),
     RootController,
     TabbedController,
@@ -210,9 +210,7 @@ class LibraryController(
 
         binding.btnGlobalSearch.clicks()
             .onEach {
-                router.pushController(
-                    GlobalSearchController(presenter.query).withFadeTransaction()
-                )
+                router.pushController(GlobalSearchController(presenter.query))
             }
             .launchIn(viewScope)
     }
@@ -281,7 +279,7 @@ class LibraryController(
                 listOf(
                     EmptyView.Action(R.string.getting_started_guide, R.drawable.ic_help_24dp) {
                         activity?.openInBrowser("https://tachiyomi.org/help/guides/getting-started")
-                    }
+                    },
                 ),
             )
             (activity as? MainActivity)?.ready = true
@@ -494,7 +492,7 @@ class LibraryController(
         // Notify the presenter a manga is being opened.
         presenter.onOpenManga()
 
-        router.pushController(MangaController(manga).withFadeTransaction())
+        router.pushController(MangaController(manga))
     }
 
     /**

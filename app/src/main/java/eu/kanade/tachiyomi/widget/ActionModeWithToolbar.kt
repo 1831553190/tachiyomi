@@ -17,6 +17,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.databinding.ActionToolbarBinding
 import eu.kanade.tachiyomi.util.system.applySystemAnimatorScale
+import eu.kanade.tachiyomi.widget.ActionModeWithToolbar.Callback
 import eu.kanade.tachiyomi.widget.listener.SimpleAnimationListener
 
 /**
@@ -78,7 +79,7 @@ class ActionModeWithToolbar @JvmOverloads constructor(context: Context, attrs: A
                             callback = null
                             actionMode = null
                         }
-                    }
+                    },
                 )
             }
             binding.root.startAnimation(bottomAnimation)

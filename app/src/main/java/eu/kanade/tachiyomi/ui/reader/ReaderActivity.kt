@@ -3,7 +3,6 @@ package eu.kanade.tachiyomi.ui.reader
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.ProgressDialog
-import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -13,6 +12,7 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.drawable.RippleDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -50,10 +50,8 @@ import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.databinding.ReaderActivityBinding
 import eu.kanade.tachiyomi.ui.base.activity.BaseRxActivity
-import eu.kanade.tachiyomi.ui.base.activity.BaseThemedActivity.Companion.applyAppTheme
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.ui.manga.MangaController
 import eu.kanade.tachiyomi.ui.reader.ReaderPresenter.SetAsCoverResult.AddToLibraryFirst
@@ -69,13 +67,13 @@ import eu.kanade.tachiyomi.ui.reader.viewer.BaseViewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.reader.viewer.pager.R2LPagerViewer
 import eu.kanade.tachiyomi.util.preference.toggle
-import eu.kanade.tachiyomi.util.storage.getUriCompat
 import eu.kanade.tachiyomi.util.system.applySystemAnimatorScale
 import eu.kanade.tachiyomi.util.system.createReaderThemeContext
 import eu.kanade.tachiyomi.util.system.getThemeColor
 import eu.kanade.tachiyomi.util.system.hasDisplayCutout
 import eu.kanade.tachiyomi.util.system.isNightMode
 import eu.kanade.tachiyomi.util.system.logcat
+import eu.kanade.tachiyomi.util.system.toShareIntent
 import eu.kanade.tachiyomi.util.system.toast
 import eu.kanade.tachiyomi.util.view.copy
 import eu.kanade.tachiyomi.util.view.popupMenu
@@ -88,8 +86,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import logcat.LogPriority
 import nucleus.factory.RequiresPresenter
-import uy.kohesive.injekt.injectLazy
-import java.io.File
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -98,15 +94,20 @@ import kotlin.math.max
  * viewers, to which calls from the presenter or UI events are delegated.
  */
 @RequiresPresenter(ReaderPresenter::class)
-class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() {
+class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
 
     companion object {
-        fun newIntent(context: Context, manga: Manga, chapter: Chapter): Intent {
+
+        fun newIntent(context: Context, mangaId: Long?, chapterId: Long?): Intent {
             return Intent(context, ReaderActivity::class.java).apply {
-                putExtra("manga", manga.id)
-                putExtra("chapter", chapter.id)
+                putExtra("manga", mangaId)
+                putExtra("chapter", chapterId)
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
+        }
+
+        fun newIntent(context: Context, manga: Manga, chapter: Chapter): Intent {
+            return newIntent(context, manga.id, chapter.id)
         }
 
         private const val ENABLED_BUTTON_IMAGE_ALPHA = 255
@@ -116,7 +117,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
         const val SHARED_ELEMENT_NAME = "reader_shared_element_root"
     }
 
-    private val preferences: PreferencesHelper by injectLazy()
+    lateinit var binding: ReaderActivityBinding
 
     val hasCutout by lazy { hasDisplayCutout() }
 
@@ -158,7 +159,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
      * Called when the activity is created. Initializes the presenter and configuration.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
-        applyAppTheme(preferences)
+        registerSecureActivity(this)
 
         // Setup shared element transitions
         if (intent.extras?.getBoolean(EXTRA_IS_TRANSITION) == true) {
@@ -320,6 +321,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
 
     private fun buildContainerTransform(entering: Boolean): MaterialContainerTransform {
         return MaterialContainerTransform(this, entering).apply {
+            duration = 350 // ms
             addTarget(android.R.id.content)
         }
     }
@@ -352,7 +354,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                         action = MainActivity.SHORTCUT_MANGA
                         putExtra(MangaController.MANGA_EXTRA, id)
                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    }
+                    },
                 )
             }
         }
@@ -366,7 +368,8 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             override fun onStopTrackingTouch(slider: Slider) {
                 isScrollingThroughPages = false
             }
-        })
+        },
+        )
         binding.pageSlider.addOnChangeListener { slider, value, fromUser ->
             if (viewer != null && fromUser) {
                 isScrollingThroughPages = true
@@ -409,13 +412,13 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
             it.foreground = RippleDrawable(
                 ColorStateList.valueOf(getThemeColor(android.R.attr.colorControlHighlight)),
                 null,
-                it.background
+                it.background,
             )
         }
 
         val toolbarColor = ColorUtils.setAlphaComponent(
             toolbarBackground.resolvedTintColor,
-            toolbarBackground.alpha
+            toolbarBackground.alpha,
         )
         window.statusBarColor = toolbarColor
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -468,7 +471,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                         R.string.on
                     } else {
                         R.string.off
-                    }
+                    },
                 )
             }
         }
@@ -533,7 +536,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 R.drawable.ic_crop_24dp
             } else {
                 R.drawable.ic_crop_off_24dp
-            }
+            },
         )
     }
 
@@ -556,7 +559,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                             // Fix status bar being translucent the first time it's opened.
                             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
                         }
-                    }
+                    },
                 )
                 binding.toolbar.startAnimation(toolbarAnimation)
 
@@ -582,7 +585,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                         override fun onAnimationEnd(animation: Animation) {
                             binding.readerMenu.isVisible = false
                         }
-                    }
+                    },
                 )
                 binding.toolbar.startAnimation(toolbarAnimation)
 
@@ -613,7 +616,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
         if (window.sharedElementEnterTransition is MaterialContainerTransform) {
             // Wait until transition is complete to avoid crash on API 26
             window.sharedElementEnterTransition.addListener(
-                onEnd = { setOrientation(presenter.getMangaOrientationType()) }
+                onEnd = { setOrientation(presenter.getMangaOrientationType()) },
             )
         } else {
             setOrientation(presenter.getMangaOrientationType())
@@ -829,18 +832,14 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
      * Called from the presenter when a page is ready to be shared. It shows Android's default
      * sharing tool.
      */
-    fun onShareImageResult(file: File, page: ReaderPage) {
+    fun onShareImageResult(uri: Uri, page: ReaderPage) {
         val manga = presenter.manga ?: return
         val chapter = page.chapter.chapter
 
-        val uri = file.getUriCompat(this)
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            putExtra(Intent.EXTRA_TEXT, getString(R.string.share_page_info, manga.title, chapter.name, page.number))
-            putExtra(Intent.EXTRA_STREAM, uri)
-            clipData = ClipData.newRawUri(null, uri)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-            type = "image/*"
-        }
+        val intent = uri.toShareIntent(
+            context = applicationContext,
+            message = getString(R.string.share_page_info, manga.title, chapter.name, page.number),
+        )
         startActivity(Intent.createChooser(intent, getString(R.string.action_share)))
     }
 
@@ -885,7 +884,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                 Success -> R.string.cover_updated
                 AddToLibraryFirst -> R.string.notification_first_add_to_library
                 Error -> R.string.notification_cover_update_failed
-            }
+            },
         )
     }
 
@@ -932,12 +931,12 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                                         -1f, 0f, 0f, 0f, 255f,
                                         0f, -1f, 0f, 0f, 255f,
                                         0f, 0f, -1f, 0f, 255f,
-                                        0f, 0f, 0f, 1f, 0f
-                                    )
-                                )
+                                        0f, 0f, 0f, 1f, 0f,
+                                    ),
+                                ),
                             )
                         }
-                    }
+                    },
                 )
             }
         }
@@ -954,7 +953,7 @@ class ReaderActivity : BaseRxActivity<ReaderActivityBinding, ReaderPresenter>() 
                             2 -> R.color.reader_background_dark
                             3 -> automaticBackgroundColor()
                             else -> android.R.color.black
-                        }
+                        },
                     )
                 }
                 .launchIn(lifecycleScope)

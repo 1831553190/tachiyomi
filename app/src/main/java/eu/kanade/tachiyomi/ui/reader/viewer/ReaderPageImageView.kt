@@ -47,7 +47,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     @AttrRes defStyleAttrs: Int = 0,
     @StyleRes defStyleRes: Int = 0,
-    private val isWebtoon: Boolean = false
+    private val isWebtoon: Boolean = false,
 ) : FrameLayout(context, attrs, defStyleAttrs, defStyleRes) {
 
     private var pageView: View? = null
@@ -102,7 +102,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                         override fun onImageLoadError(e: Exception) {
                             onImageLoadError()
                         }
-                    }
+                    },
                 )
             }
         }
@@ -110,7 +110,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
     private fun SubsamplingScaleImageView.landscapeZoom(forward: Boolean) {
         if (config != null && config!!.landscapeZoom && config!!.minimumScaleType == SCALE_TYPE_CENTER_INSIDE && sWidth > sHeight && scale == minScale) {
-            handler.postDelayed({
+            handler?.postDelayed({
                 val point = when (config!!.zoomStartPosition) {
                     ZoomStartPosition.LEFT -> if (forward) PointF(0F, 0F) else PointF(sWidth.toFloat(), 0F)
                     ZoomStartPosition.RIGHT -> if (forward) PointF(sWidth.toFloat(), 0F) else PointF(0F, 0F)
@@ -123,7 +123,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     .withEasing(EASE_IN_OUT_QUAD)
                     .withInterruptible(true)
                     .start()
-            }, 500)
+            }, 500,)
         }
     }
 
@@ -233,7 +233,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                     override fun onCenterChanged(newCenter: PointF?, origin: Int) {
                         // Not used
                     }
-                }
+                },
             )
             setOnClickListener { this@ReaderPageImageView.onViewClicked() }
         }
@@ -249,12 +249,13 @@ open class ReaderPageImageView @JvmOverloads constructor(
             ZoomStartPosition.LEFT -> setScaleAndCenter(scale, PointF(0F, 0F))
             ZoomStartPosition.RIGHT -> setScaleAndCenter(scale, PointF(sWidth.toFloat(), 0F))
             ZoomStartPosition.CENTER -> setScaleAndCenter(scale, center.also { it?.y = 0F })
+            null -> {}
         }
     }
 
     private fun setNonAnimatedImage(
         image: Any,
-        config: Config
+        config: Config,
     ) = (pageView as? SubsamplingScaleImageView)?.apply {
         setDoubleTapZoomDuration(config.zoomDuration.getSystemScaledDuration())
         setMinimumScaleType(config.minimumScaleType)
@@ -271,7 +272,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 override fun onImageLoadError(e: Exception) {
                     this@ReaderPageImageView.onImageLoadError()
                 }
-            }
+            },
         )
 
         when (image) {
@@ -314,7 +315,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                             this@ReaderPageImageView.onViewClicked()
                             return super.onSingleTapConfirmed(e)
                         }
-                    }
+                    },
                 )
                 setOnScaleChangeListener { _, _, _ ->
                     this@ReaderPageImageView.onScaleChanged(scale)
@@ -326,7 +327,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
 
     private fun setAnimatedImage(
         image: Any,
-        config: Config
+        config: Config,
     ) = (pageView as? AppCompatImageView)?.apply {
         if (this is PhotoView) {
             setZoomTransitionDuration(config.zoomDuration.getSystemScaledDuration())
@@ -350,7 +351,7 @@ open class ReaderPageImageView @JvmOverloads constructor(
                 },
                 onError = {
                     this@ReaderPageImageView.onImageLoadError()
-                }
+                },
             )
             .crossfade(false)
             .build()

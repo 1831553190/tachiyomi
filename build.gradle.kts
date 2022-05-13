@@ -2,8 +2,9 @@ buildscript {
     dependencies {
         classpath(libs.android.shortcut.gradle)
         classpath(libs.google.services.gradle)
-        classpath(libs.aboutlibraries.gradle)
+        classpath(libs.aboutLibraries.gradle)
         classpath(kotlinx.serialization.gradle)
+        classpath("com.squareup.sqldelight:gradle-plugin:1.5.3")
     }
 }
 

@@ -17,6 +17,7 @@ import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.download.Downloader
+import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
@@ -85,32 +86,68 @@ class LibraryUpdateNotifier(private val context: Context) {
             Notifications.ID_LIBRARY_PROGRESS,
             progressNotificationBuilder
                 .setProgress(total, current, false)
-                .build()
+                .build(),
+        )
+    }
+
+    fun showQueueSizeWarningNotification() {
+        val notificationBuilder = context.notificationBuilder(Notifications.CHANNEL_LIBRARY_PROGRESS) {
+            setContentTitle(context.getString(R.string.label_warning))
+            setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(R.string.notification_size_warning)))
+            setSmallIcon(R.drawable.ic_warning_white_24dp)
+            setTimeoutAfter(Downloader.WARNING_NOTIF_TIMEOUT_MS)
+            setContentIntent(NotificationHandler.openUrl(context, HELP_WARNING_URL))
+        }
+
+        context.notificationManager.notify(
+            Notifications.ID_LIBRARY_SIZE_WARNING,
+            notificationBuilder.build(),
         )
     }
 
     /**
      * Shows notification containing update entries that failed with action to open full log.
      *
-     * @param skipped Number of entries that were skipped during the update.
      * @param failed Number of entries that failed to update.
      * @param uri Uri for error log file containing all titles that failed.
      */
-    fun showUpdateErrorNotification(skipped: Int, failed: Int, uri: Uri) {
-        if (skipped == 0 && failed == 0) {
+    fun showUpdateErrorNotification(failed: Int, uri: Uri) {
+        if (failed == 0) {
             return
         }
 
         context.notificationManager.notify(
             Notifications.ID_LIBRARY_ERROR,
             context.notificationBuilder(Notifications.CHANNEL_LIBRARY_ERROR) {
-                setContentTitle(context.resources.getString(R.string.notification_update_skipped_error, skipped, failed))
+                setContentTitle(context.resources.getString(R.string.notification_update_error, failed))
                 setContentText(context.getString(R.string.action_show_errors))
                 setSmallIcon(R.drawable.ic_tachi)
 
                 setContentIntent(NotificationReceiver.openErrorLogPendingActivity(context, uri))
             }
-                .build()
+                .build(),
+        )
+    }
+
+    /**
+     * Shows notification containing update entries that were skipped.
+     *
+     * @param skipped Number of entries that were skipped during the update.
+     */
+    fun showUpdateSkippedNotification(skipped: Int) {
+        if (skipped == 0) {
+            return
+        }
+
+        context.notificationManager.notify(
+            Notifications.ID_LIBRARY_SKIPPED,
+            context.notificationBuilder(Notifications.CHANNEL_LIBRARY_SKIPPED) {
+                setContentTitle(context.resources.getString(R.string.notification_update_skipped, skipped))
+                setContentText(context.getString(R.string.learn_more))
+                setSmallIcon(R.drawable.ic_tachi)
+                setContentIntent(NotificationHandler.openUrl(context, HELP_SKIPPED_URL))
+            }
+                .build(),
         )
     }
 
@@ -140,8 +177,8 @@ class LibraryUpdateNotifier(private val context: Context) {
                                 NotificationCompat.BigTextStyle().bigText(
                                     updates.joinToString("\n") {
                                         it.first.title.chop(NOTIF_TITLE_MAX_LEN)
-                                    }
-                                )
+                                    },
+                                ),
                             )
                         }
                     }
@@ -156,7 +193,7 @@ class LibraryUpdateNotifier(private val context: Context) {
 
                     setContentIntent(getNotificationIntent())
                     setAutoCancel(true)
-                }
+                },
             )
 
             // Per-manga notification
@@ -201,8 +238,8 @@ class LibraryUpdateNotifier(private val context: Context) {
                     context,
                     manga,
                     chapters,
-                    Notifications.ID_NEW_CHAPTERS
-                )
+                    Notifications.ID_NEW_CHAPTERS,
+                ),
             )
             // View chapters action
             addAction(
@@ -211,8 +248,8 @@ class LibraryUpdateNotifier(private val context: Context) {
                 NotificationReceiver.openChapterPendingActivity(
                     context,
                     manga,
-                    Notifications.ID_NEW_CHAPTERS
-                )
+                    Notifications.ID_NEW_CHAPTERS,
+                ),
             )
             // Download chapters action
             // Only add the action when chapters is within threshold
@@ -224,8 +261,8 @@ class LibraryUpdateNotifier(private val context: Context) {
                         context,
                         manga,
                         chapters,
-                        Notifications.ID_NEW_CHAPTERS
-                    )
+                        Notifications.ID_NEW_CHAPTERS,
+                    ),
                 )
             }
         }
@@ -252,7 +289,7 @@ class LibraryUpdateNotifier(private val context: Context) {
         val formatter = DecimalFormat(
             "#.###",
             DecimalFormatSymbols()
-                .apply { decimalSeparator = '.' }
+                .apply { decimalSeparator = '.' },
         )
 
         val displayableChapterNumbers = chapters
@@ -302,12 +339,15 @@ class LibraryUpdateNotifier(private val context: Context) {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             action = MainActivity.SHORTCUT_RECENTLY_UPDATED
         }
-        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
     companion object {
-        private const val NOTIF_MAX_CHAPTERS = 5
-        private const val NOTIF_TITLE_MAX_LEN = 45
-        private const val NOTIF_ICON_SIZE = 192
+        const val HELP_WARNING_URL = "https://tachiyomi.org/help/faq/#why-does-the-app-warn-about-large-bulk-updates-and-downloads"
     }
 }
+
+private const val NOTIF_MAX_CHAPTERS = 5
+private const val NOTIF_TITLE_MAX_LEN = 45
+private const val NOTIF_ICON_SIZE = 192
+private const val HELP_SKIPPED_URL = "https://tachiyomi.org/help/faq/#why-does-global-update-skip-some-entries"

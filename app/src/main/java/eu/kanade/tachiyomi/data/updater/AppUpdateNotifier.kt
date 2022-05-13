@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.data.updater
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -26,11 +27,13 @@ internal class AppUpdateNotifier(private val context: Context) {
         context.notificationManager.notify(id, build())
     }
 
+    @SuppressLint("LaunchActivityFromNotification")
     fun promptUpdate(release: GithubRelease) {
         val intent = Intent(context, AppUpdateService::class.java).apply {
             putExtra(AppUpdateService.EXTRA_DOWNLOAD_URL, release.getDownloadLink())
+            putExtra(AppUpdateService.EXTRA_DOWNLOAD_TITLE, release.version)
         }
-        val updateIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val updateIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val releaseIntent = Intent(Intent.ACTION_VIEW, release.releaseLink.toUri()).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -54,6 +57,22 @@ internal class AppUpdateNotifier(private val context: Context) {
                 context.getString(R.string.whats_new),
                 releaseInfoIntent,
             )
+        }
+        notificationBuilder.show()
+    }
+
+    /**
+     * Some people are still installing the app from F-Droid, so we avoid prompting GitHub-based
+     * updates.
+     *
+     * We can prompt them to migrate to the GitHub version though.
+     */
+    fun promptFdroidUpdate() {
+        with(notificationBuilder) {
+            setContentTitle(context.getString(R.string.update_check_notification_update_available))
+            setContentText(context.getString(R.string.update_check_fdroid_migration_info))
+            setSmallIcon(R.drawable.ic_tachi)
+            setContentIntent(NotificationHandler.openUrl(context, "https://tachiyomi.org/help/faq/#how-do-i-migrate-from-the-f-droid-version"))
         }
         notificationBuilder.show()
     }
@@ -100,17 +119,18 @@ internal class AppUpdateNotifier(private val context: Context) {
             setOnlyAlertOnce(false)
             setProgress(0, 0, false)
             setContentIntent(installIntent)
+            setOngoing(true)
 
             clearActions()
             addAction(
                 R.drawable.ic_system_update_alt_white_24dp,
                 context.getString(R.string.action_install),
-                installIntent
+                installIntent,
             )
             addAction(
                 R.drawable.ic_close_24dp,
                 context.getString(R.string.action_cancel),
-                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_APP_UPDATER)
+                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_APP_UPDATER),
             )
         }
         notificationBuilder.show()
@@ -132,12 +152,12 @@ internal class AppUpdateNotifier(private val context: Context) {
             addAction(
                 R.drawable.ic_refresh_24dp,
                 context.getString(R.string.action_retry),
-                AppUpdateService.downloadApkPendingService(context, url)
+                AppUpdateService.downloadApkPendingService(context, url),
             )
             addAction(
                 R.drawable.ic_close_24dp,
                 context.getString(R.string.action_cancel),
-                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_APP_UPDATER)
+                NotificationReceiver.dismissNotificationPendingBroadcast(context, Notifications.ID_APP_UPDATER),
             )
         }
         notificationBuilder.show(Notifications.ID_APP_UPDATER)

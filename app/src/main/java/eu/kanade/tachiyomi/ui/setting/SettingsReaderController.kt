@@ -32,7 +32,7 @@ class SettingsReaderController : SettingsController() {
                 R.string.right_to_left_viewer,
                 R.string.vertical_viewer,
                 R.string.webtoon_viewer,
-                R.string.vertical_plus_viewer
+                R.string.vertical_plus_viewer,
             )
             entryValues = ReadingModeType.values().drop(1)
                 .map { value -> "${value.flagValue}" }.toTypedArray()
@@ -78,6 +78,7 @@ class SettingsReaderController : SettingsController() {
                 entriesRes = arrayOf(
                     R.string.rotation_free,
                     R.string.rotation_portrait,
+                    R.string.rotation_reverse_portrait,
                     R.string.rotation_landscape,
                     R.string.rotation_force_portrait,
                     R.string.rotation_force_landscape,
@@ -147,8 +148,6 @@ class SettingsReaderController : SettingsController() {
                     entryValues = values.indices.map { index -> "$index" }.toTypedArray()
                 }
                 summary = "%s"
-
-                visibleIf(preferences.readWithTapping()) { it }
             }
             listPreference {
                 bindTo(preferences.pagerNavInverted())
@@ -157,17 +156,15 @@ class SettingsReaderController : SettingsController() {
                     R.string.tapping_inverted_none,
                     R.string.tapping_inverted_horizontal,
                     R.string.tapping_inverted_vertical,
-                    R.string.tapping_inverted_both
+                    R.string.tapping_inverted_both,
                 )
                 entryValues = arrayOf(
                     TappingInvertMode.NONE.name,
                     TappingInvertMode.HORIZONTAL.name,
                     TappingInvertMode.VERTICAL.name,
-                    TappingInvertMode.BOTH.name
+                    TappingInvertMode.BOTH.name,
                 )
                 summary = "%s"
-
-                visibleIf(preferences.readWithTapping()) { it }
             }
             intListPreference {
                 bindTo(preferences.imageScaleType())
@@ -178,7 +175,7 @@ class SettingsReaderController : SettingsController() {
                     R.string.scale_type_fit_width,
                     R.string.scale_type_fit_height,
                     R.string.scale_type_original_size,
-                    R.string.scale_type_smart_fit
+                    R.string.scale_type_smart_fit,
                 )
                 entryValues = arrayOf("1", "2", "3", "4", "5", "6")
                 summary = "%s"
@@ -195,7 +192,7 @@ class SettingsReaderController : SettingsController() {
                     R.string.zoom_start_automatic,
                     R.string.zoom_start_left,
                     R.string.zoom_start_right,
-                    R.string.zoom_start_center
+                    R.string.zoom_start_center,
                 )
                 entryValues = arrayOf("1", "2", "3", "4")
                 summary = "%s"
@@ -230,7 +227,6 @@ class SettingsReaderController : SettingsController() {
                     entryValues = values.indices.map { index -> "$index" }.toTypedArray()
                 }
                 summary = "%s"
-                visibleIf(preferences.readWithTapping()) { it }
             }
             listPreference {
                 bindTo(preferences.webtoonNavInverted())
@@ -239,17 +235,15 @@ class SettingsReaderController : SettingsController() {
                     R.string.tapping_inverted_none,
                     R.string.tapping_inverted_horizontal,
                     R.string.tapping_inverted_vertical,
-                    R.string.tapping_inverted_both
+                    R.string.tapping_inverted_both,
                 )
                 entryValues = arrayOf(
                     TappingInvertMode.NONE.name,
                     TappingInvertMode.HORIZONTAL.name,
                     TappingInvertMode.VERTICAL.name,
-                    TappingInvertMode.BOTH.name
+                    TappingInvertMode.BOTH.name,
                 )
                 summary = "%s"
-
-                visibleIf(preferences.readWithTapping()) { it }
             }
             intListPreference {
                 bindTo(preferences.webtoonSidePadding())
@@ -260,7 +254,7 @@ class SettingsReaderController : SettingsController() {
                     R.string.webtoon_side_padding_10,
                     R.string.webtoon_side_padding_15,
                     R.string.webtoon_side_padding_20,
-                    R.string.webtoon_side_padding_25
+                    R.string.webtoon_side_padding_25,
                 )
                 entryValues = arrayOf("0", "5", "10", "15", "20", "25")
                 summary = "%s"
@@ -272,7 +266,7 @@ class SettingsReaderController : SettingsController() {
                     R.string.pref_highest,
                     R.string.pref_high,
                     R.string.pref_low,
-                    R.string.pref_lowest
+                    R.string.pref_lowest,
                 )
                 entryValues = PreferenceValues.ReaderHideThreshold.values()
                     .map { it.name }
@@ -298,10 +292,6 @@ class SettingsReaderController : SettingsController() {
         preferenceCategory {
             titleRes = R.string.pref_reader_navigation
 
-            switchPreference {
-                bindTo(preferences.readWithTapping())
-                titleRes = R.string.pref_read_with_tapping
-            }
             switchPreference {
                 bindTo(preferences.readWithVolumeKeys())
                 titleRes = R.string.pref_read_with_volume_keys

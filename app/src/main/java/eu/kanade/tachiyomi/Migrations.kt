@@ -259,6 +259,24 @@ object Migrations {
             if (oldVersion < 76) {
                 BackupCreatorJob.setupTask(context)
             }
+            if (oldVersion < 77) {
+                val oldReaderTap = prefs.getBoolean("reader_tap", false)
+                if (!oldReaderTap) {
+                    preferences.navigationModePager().set(5)
+                    preferences.navigationModeWebtoon().set(5)
+                }
+            }
+            if (oldVersion < 81) {
+                // Handle renamed enum values
+                @Suppress("DEPRECATION")
+                val newSortingMode = when (val oldSortingMode = preferences.librarySortingMode().get()) {
+                    SortModeSetting.LAST_CHECKED -> SortModeSetting.LAST_MANGA_UPDATE
+                    SortModeSetting.UNREAD -> SortModeSetting.UNREAD_COUNT
+                    SortModeSetting.DATE_FETCHED -> SortModeSetting.CHAPTER_FETCH_DATE
+                    else -> oldSortingMode
+                }
+                preferences.librarySortingMode().set(newSortingMode)
+            }
 
             return true
         }

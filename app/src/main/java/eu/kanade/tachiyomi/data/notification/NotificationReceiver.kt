@@ -59,14 +59,14 @@ class NotificationReceiver : BroadcastReceiver() {
                 shareImage(
                     context,
                     intent.getStringExtra(EXTRA_FILE_LOCATION)!!,
-                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
                 )
             // Delete image from path and dismiss notification
             ACTION_DELETE_IMAGE ->
                 deleteImage(
                     context,
                     intent.getStringExtra(EXTRA_FILE_LOCATION)!!,
-                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
                 )
             // Share backup file
             ACTION_SHARE_BACKUP ->
@@ -74,11 +74,11 @@ class NotificationReceiver : BroadcastReceiver() {
                     context,
                     intent.getParcelableExtra(EXTRA_URI)!!,
                     "application/x-protobuf+gzip",
-                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
                 )
             ACTION_CANCEL_RESTORE -> cancelRestore(
                 context,
-                intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+                intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
             )
             // Cancel library update and dismiss notification
             ACTION_CANCEL_LIBRARY_UPDATE -> cancelLibraryUpdate(context, Notifications.ID_LIBRARY_PROGRESS)
@@ -87,7 +87,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 openChapter(
                     context,
                     intent.getLongExtra(EXTRA_MANGA_ID, -1),
-                    intent.getLongExtra(EXTRA_CHAPTER_ID, -1)
+                    intent.getLongExtra(EXTRA_CHAPTER_ID, -1),
                 )
             }
             // Mark updated manga chapters as read
@@ -120,7 +120,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     context,
                     intent.getParcelableExtra(EXTRA_URI)!!,
                     "text/plain",
-                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+                    intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1),
                 )
         }
     }
@@ -166,7 +166,7 @@ class NotificationReceiver : BroadcastReceiver() {
      * @param chapterId id of chapter
      */
     private fun openChapter(context: Context, mangaId: Long, chapterId: Long) {
-        val db = DatabaseHelper(context)
+        val db = Injekt.get<DatabaseHelper>()
         val manga = db.getManga(mangaId).executeAsBlocking()
         val chapter = db.getChapter(chapterId).executeAsBlocking()
         if (manga != null && chapter != null) {
@@ -307,7 +307,7 @@ class NotificationReceiver : BroadcastReceiver() {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_RESUME_DOWNLOADS
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -320,7 +320,7 @@ class NotificationReceiver : BroadcastReceiver() {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_PAUSE_DOWNLOADS
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -333,7 +333,7 @@ class NotificationReceiver : BroadcastReceiver() {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_CLEAR_DOWNLOADS
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -348,7 +348,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 action = ACTION_DISMISS_NOTIFICATION
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -403,7 +403,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 putExtra(EXTRA_FILE_LOCATION, path)
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -420,7 +420,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 putExtra(EXTRA_FILE_LOCATION, path)
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -432,7 +432,7 @@ class NotificationReceiver : BroadcastReceiver() {
          */
         internal fun openChapterPendingActivity(context: Context, manga: Manga, chapter: Chapter): PendingIntent {
             val newIntent = ReaderActivity.newIntent(context, manga, chapter)
-            return PendingIntent.getActivity(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getActivity(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -448,7 +448,7 @@ class NotificationReceiver : BroadcastReceiver() {
                     .putExtra(MangaController.MANGA_EXTRA, manga.id)
                     .putExtra("notificationId", manga.id.hashCode())
                     .putExtra("groupId", groupId)
-            return PendingIntent.getActivity(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getActivity(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -461,7 +461,7 @@ class NotificationReceiver : BroadcastReceiver() {
             context: Context,
             manga: Manga,
             chapters: Array<Chapter>,
-            groupId: Int
+            groupId: Int,
         ): PendingIntent {
             val newIntent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_MARK_AS_READ
@@ -470,7 +470,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 putExtra(EXTRA_NOTIFICATION_ID, manga.id.hashCode())
                 putExtra(EXTRA_GROUP_ID, groupId)
             }
-            return PendingIntent.getBroadcast(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -483,7 +483,7 @@ class NotificationReceiver : BroadcastReceiver() {
             context: Context,
             manga: Manga,
             chapters: Array<Chapter>,
-            groupId: Int
+            groupId: Int,
         ): PendingIntent {
             val newIntent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_DOWNLOAD_CHAPTER
@@ -492,7 +492,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 putExtra(EXTRA_NOTIFICATION_ID, manga.id.hashCode())
                 putExtra(EXTRA_GROUP_ID, groupId)
             }
-            return PendingIntent.getBroadcast(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, manga.id.hashCode(), newIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -505,7 +505,7 @@ class NotificationReceiver : BroadcastReceiver() {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_CANCEL_LIBRARY_UPDATE
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -519,7 +519,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 action = MainActivity.SHORTCUT_EXTENSIONS
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
-            return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -536,7 +536,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 putExtra(EXTRA_URI, uri)
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -552,7 +552,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 setDataAndType(uri, "text/plain")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
             }
-            return PendingIntent.getActivity(context, 0, intent, 0)
+            return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -569,7 +569,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 putExtra(EXTRA_URI, uri)
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
 
         /**
@@ -584,7 +584,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 action = ACTION_CANCEL_RESTORE
                 putExtra(EXTRA_NOTIFICATION_ID, notificationId)
             }
-            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
     }
 }

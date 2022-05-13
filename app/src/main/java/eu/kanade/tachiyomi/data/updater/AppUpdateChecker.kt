@@ -8,6 +8,7 @@ import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.await
 import eu.kanade.tachiyomi.network.parseAs
 import eu.kanade.tachiyomi.util.lang.withIOContext
+import eu.kanade.tachiyomi.util.system.getInstallerPackageName
 import uy.kohesive.injekt.injectLazy
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -33,14 +34,20 @@ class AppUpdateChecker {
 
                     // Check if latest version is different from current version
                     if (isNewVersion(it.version)) {
-                        AppUpdateResult.NewUpdate(it)
+                        if (context.getInstallerPackageName() == "org.fdroid.fdroid") {
+                            AppUpdateResult.NewUpdateFdroidInstallation
+                        } else {
+                            AppUpdateResult.NewUpdate(it)
+                        }
                     } else {
                         AppUpdateResult.NoNewUpdate
                     }
                 }
 
-            if (result is AppUpdateResult.NewUpdate) {
-                AppUpdateNotifier(context).promptUpdate(result.release)
+            when (result) {
+                is AppUpdateResult.NewUpdate -> AppUpdateNotifier(context).promptUpdate(result.release)
+                is AppUpdateResult.NewUpdateFdroidInstallation -> AppUpdateNotifier(context).promptFdroidUpdate()
+                else -> {}
             }
 
             result
@@ -58,7 +65,18 @@ class AppUpdateChecker {
         } else {
             // Release builds: based on releases in "tachiyomiorg/tachiyomi" repo
             // tagged as something like "v0.1.2"
-            newVersion != BuildConfig.VERSION_NAME
+            val oldVersion = BuildConfig.VERSION_NAME.replace("[^\\d.]".toRegex(), "")
+
+            val newSemVer = newVersion.split(".").map { it.toInt() }
+            val oldSemVer = oldVersion.split(".").map { it.toInt() }
+
+            oldSemVer.mapIndexed { index, i ->
+                if (newSemVer[index] > i) {
+                    return true
+                }
+            }
+
+            false
         }
     }
 }

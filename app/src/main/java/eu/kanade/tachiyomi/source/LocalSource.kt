@@ -218,7 +218,6 @@ class LocalSource(private val context: Context) : CatalogueSource, UnmeteredSour
                         }
                     }
 
-                    name = getCleanChapterTitle(name, manga.title)
                     ChapterRecognition.parseChapterNumber(this, sManga)
                 }
             }
@@ -233,15 +232,6 @@ class LocalSource(private val context: Context) : CatalogueSource, UnmeteredSour
     }
 
     override suspend fun getPageList(chapter: ChapterInfo) = throw Exception("Unused")
-
-    /**
-     * Strips the manga title from a chapter name and trim whitespace/delimiter characters.
-     */
-    private fun getCleanChapterTitle(chapterName: String, mangaTitle: String): String {
-        return chapterName
-            .replace(mangaTitle, "")
-            .trim(*WHITESPACE_CHARS.toCharArray(), '-', '_', ',', ':')
-    }
 
     private fun isSupportedFile(extension: String): Boolean {
         return extension.lowercase() in SUPPORTED_ARCHIVE_TYPES
@@ -316,7 +306,7 @@ class LocalSource(private val context: Context) : CatalogueSource, UnmeteredSour
     private class OrderBy(context: Context) : Filter.Sort(
         context.getString(R.string.local_filter_order_by),
         arrayOf(context.getString(R.string.title), context.getString(R.string.date)),
-        Selection(0, true)
+        Selection(0, true),
     )
 
     sealed class Format {
@@ -328,32 +318,3 @@ class LocalSource(private val context: Context) : CatalogueSource, UnmeteredSour
 }
 
 private val SUPPORTED_ARCHIVE_TYPES = listOf("zip", "cbz", "rar", "cbr", "epub")
-
-private val WHITESPACE_CHARS = arrayOf(
-    ' ',
-    '\u0009',
-    '\u000A',
-    '\u000B',
-    '\u000C',
-    '\u000D',
-    '\u0020',
-    '\u0085',
-    '\u00A0',
-    '\u1680',
-    '\u2000',
-    '\u2001',
-    '\u2002',
-    '\u2003',
-    '\u2004',
-    '\u2005',
-    '\u2006',
-    '\u2007',
-    '\u2008',
-    '\u2009',
-    '\u200A',
-    '\u2028',
-    '\u2029',
-    '\u202F',
-    '\u205F',
-    '\u3000',
-)

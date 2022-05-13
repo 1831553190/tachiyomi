@@ -62,7 +62,7 @@ open class BrowseSourcePresenter(
     private val sourceManager: SourceManager = Injekt.get(),
     private val db: DatabaseHelper = Injekt.get(),
     private val prefs: PreferencesHelper = Injekt.get(),
-    private val coverCache: CoverCache = Injekt.get()
+    private val coverCache: CoverCache = Injekt.get(),
 ) : BasePresenter<BrowseSourceController>() {
 
     /**
@@ -157,7 +157,7 @@ open class BrowseSourcePresenter(
                 },
                 { _, error ->
                     logcat(LogPriority.ERROR, error)
-                }
+                },
             )
 
         // Request first page.
@@ -349,6 +349,10 @@ open class BrowseSourcePresenter(
      */
     fun getCategories(): List<Category> {
         return db.getCategories().executeAsBlocking()
+    }
+
+    fun getDuplicateLibraryManga(manga: Manga): Manga? {
+        return db.getDuplicateLibraryManga(manga).executeAsBlocking()
     }
 
     /**
