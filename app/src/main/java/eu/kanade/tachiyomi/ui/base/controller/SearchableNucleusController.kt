@@ -2,14 +2,14 @@ package eu.kanade.tachiyomi.ui.base.controller
 
 import android.app.Activity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.text.style.CharacterStyle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.SearchView
+import androidx.core.text.getSpans
+import androidx.core.widget.doAfterTextChanged
 import androidx.viewbinding.ViewBinding
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.ui.base.presenter.BasePresenter
@@ -59,17 +59,9 @@ abstract class SearchableNucleusController<VB : ViewBinding, P : BasePresenter<*
         val searchAutoComplete: SearchView.SearchAutoComplete = searchView.findViewById(
             R.id.search_src_text,
         )
-        searchAutoComplete.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(editable: Editable) {
-                editable.getSpans(0, editable.length, CharacterStyle::class.java)
-                    .forEach { editable.removeSpan(it) }
-            }
-        },
-        )
+        searchAutoComplete.doAfterTextChanged { editable ->
+            editable?.getSpans<CharacterStyle>()?.forEach { editable.removeSpan(it) }
+        }
 
         searchView.queryTextEvents()
             .onEach {
@@ -134,12 +126,12 @@ abstract class SearchableNucleusController<VB : ViewBinding, P : BasePresenter<*
 
         searchItem.setOnActionExpandListener(
             object : MenuItem.OnActionExpandListener {
-                override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                override fun onMenuItemActionExpand(item: MenuItem): Boolean {
                     onSearchMenuItemActionExpand(item)
                     return true
                 }
 
-                override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                     val localSearchView = searchItem.actionView as SearchView
 
                     // if it is blank the flow event won't trigger so we would stay in a COLLAPSING state

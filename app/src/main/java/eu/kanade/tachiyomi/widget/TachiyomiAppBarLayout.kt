@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import androidx.annotation.FloatRange
+import androidx.core.graphics.withTranslation
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -84,10 +85,9 @@ class TachiyomiAppBarLayout @JvmOverloads constructor(
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        val saveCount = canvas.save()
-        canvas.translate(0f, -currentOffset.toFloat())
-        statusBarForeground?.draw(canvas)
-        canvas.restoreToCount(saveCount)
+        canvas.withTranslation(y = -currentOffset.toFloat()) {
+            statusBarForeground?.draw(this)
+        }
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {

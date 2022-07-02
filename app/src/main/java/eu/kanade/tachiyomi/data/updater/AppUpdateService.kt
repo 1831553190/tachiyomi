@@ -21,7 +21,12 @@ import eu.kanade.tachiyomi.util.storage.saveTo
 import eu.kanade.tachiyomi.util.system.acquireWakeLock
 import eu.kanade.tachiyomi.util.system.isServiceRunning
 import eu.kanade.tachiyomi.util.system.logcat
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import logcat.LogPriority
+import okhttp3.Call
+import okhttp3.internal.http2.ErrorCode
+import okhttp3.internal.http2.StreamResetException
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 
@@ -35,6 +40,9 @@ class AppUpdateService : Service() {
     private lateinit var wakeLock: PowerManager.WakeLock
 
     private lateinit var notifier: AppUpdateNotifier
+
+    private var runningJob: Job? = null
+    private var runningCall: Call? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -56,11 +64,11 @@ class AppUpdateService : Service() {
         val url = intent.getStringExtra(EXTRA_DOWNLOAD_URL) ?: return START_NOT_STICKY
         val title = intent.getStringExtra(EXTRA_DOWNLOAD_TITLE) ?: getString(R.string.app_name)
 
-        launchIO {
+        runningJob = launchIO {
             downloadApk(title, url)
         }
 
-        stopSelf(startId)
+        runningJob?.invokeOnCompletion { stopSelf(startId) }
         return START_NOT_STICKY
     }
 
@@ -75,6 +83,8 @@ class AppUpdateService : Service() {
     }
 
     private fun destroyJob() {
+        runningJob?.cancel()
+        runningCall?.cancel()
         if (wakeLock.isHeld) {
             wakeLock.release()
         }
@@ -109,7 +119,9 @@ class AppUpdateService : Service() {
 
         try {
             // Download the new update.
-            val response = network.client.newCallWithProgress(GET(url), progressListener).await()
+            val call = network.client.newCallWithProgress(GET(url), progressListener)
+            runningCall = call
+            val response = call.await()
 
             // File where the apk will be saved.
             val apkFile = File(externalCacheDir, "update.apk")
@@ -120,10 +132,16 @@ class AppUpdateService : Service() {
                 response.close()
                 throw Exception("Unsuccessful response")
             }
-            notifier.onDownloadFinished(apkFile.getUriCompat(this))
+            notifier.promptInstall(apkFile.getUriCompat(this))
         } catch (error: Exception) {
             logcat(LogPriority.ERROR, error)
-            notifier.onDownloadError(url)
+            if (error is CancellationException ||
+                (error is StreamResetException && error.errorCode == ErrorCode.CANCEL)
+            ) {
+                notifier.cancel()
+            } else {
+                notifier.onDownloadError(url)
+            }
         }
     }
 
@@ -158,6 +176,15 @@ class AppUpdateService : Service() {
         }
 
         /**
+         * Stops the service.
+         *
+         * @param context the application context
+         */
+        fun stop(context: Context) {
+            context.stopService(Intent(context, AppUpdateService::class.java))
+        }
+
+        /**
          * Returns [PendingIntent] that starts a service which downloads the apk specified in url.
          *
          * @param url the url to the new update.
@@ -167,7 +194,7 @@ class AppUpdateService : Service() {
             val intent = Intent(context, AppUpdateService::class.java).apply {
                 putExtra(EXTRA_DOWNLOAD_URL, url)
             }
-            return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+            return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
     }
 }

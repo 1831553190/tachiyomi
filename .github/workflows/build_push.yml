@@ -30,15 +30,10 @@ jobs:
           java-version: 11
           distribution: adopt
 
-      - name: Copy CI gradle.properties
-        run: |
-          mkdir -p ~/.gradle
-          cp .github/runner-files/ci-gradle.properties ~/.gradle/gradle.properties
-
-      - name: Build app
+      - name: Build app and run unit tests
         uses: gradle/gradle-command-action@v2
         with:
-          arguments: assembleStandardRelease
+          arguments: assembleStandardRelease testStandardReleaseUnitTest
 
       # Sign APK and create release for tags
 

@@ -1,6 +1,5 @@
 package eu.kanade.tachiyomi.data.database.queries
 
-import eu.kanade.tachiyomi.data.database.resolvers.SourceIdMangaCountGetResolver
 import eu.kanade.tachiyomi.data.database.tables.CategoryTable as Category
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable as Chapter
 import eu.kanade.tachiyomi.data.database.tables.HistoryTable as History
@@ -37,37 +36,6 @@ val libraryQuery =
     LEFT JOIN (
         SELECT * FROM ${MangaCategory.TABLE}) AS MC
         ON MC.${MangaCategory.COL_MANGA_ID} = M.${Manga.COL_ID}
-"""
-
-/**
- * Query to get the recent chapters of manga from the library up to a date.
- */
-fun getRecentsQuery() =
-    """
-    SELECT ${Manga.TABLE}.${Manga.COL_URL} as mangaUrl, * FROM ${Manga.TABLE} JOIN ${Chapter.TABLE}
-    ON ${Manga.TABLE}.${Manga.COL_ID} = ${Chapter.TABLE}.${Chapter.COL_MANGA_ID}
-    WHERE ${Manga.COL_FAVORITE} = 1 
-    AND ${Chapter.COL_DATE_UPLOAD} > ?
-    AND ${Chapter.COL_DATE_FETCH} > ${Manga.COL_DATE_ADDED}
-    ORDER BY ${Chapter.COL_DATE_UPLOAD} DESC
-"""
-
-fun getHistoryByMangaId() =
-    """
-    SELECT ${History.TABLE}.*
-    FROM ${History.TABLE}
-    JOIN ${Chapter.TABLE}
-    ON ${History.TABLE}.${History.COL_CHAPTER_ID} = ${Chapter.TABLE}.${Chapter.COL_ID}
-    WHERE ${Chapter.TABLE}.${Chapter.COL_MANGA_ID} = ? AND ${History.TABLE}.${History.COL_CHAPTER_ID} = ${Chapter.TABLE}.${Chapter.COL_ID}
-"""
-
-fun getHistoryByChapterUrl() =
-    """
-    SELECT ${History.TABLE}.*
-    FROM ${History.TABLE}
-    JOIN ${Chapter.TABLE}
-    ON ${History.TABLE}.${History.COL_CHAPTER_ID} = ${Chapter.TABLE}.${Chapter.COL_ID}
-    WHERE ${Chapter.TABLE}.${Chapter.COL_URL} = ? AND ${History.TABLE}.${History.COL_CHAPTER_ID} = ${Chapter.TABLE}.${Chapter.COL_ID}
 """
 
 fun getLastReadMangaQuery() =
@@ -113,14 +81,3 @@ fun getCategoriesForMangaQuery() =
     ${MangaCategory.TABLE}.${MangaCategory.COL_CATEGORY_ID}
     WHERE ${MangaCategory.COL_MANGA_ID} = ?
 """
-
-/** Query to get the list of sources in the database that have
- * non-library manga, and how many
- */
-fun getSourceIdsWithNonLibraryMangaQuery() =
-    """
-    SELECT ${Manga.COL_SOURCE}, COUNT(*) as ${SourceIdMangaCountGetResolver.COL_COUNT}
-    FROM ${Manga.TABLE}
-    WHERE ${Manga.COL_FAVORITE} = 0
-    GROUP BY ${Manga.COL_SOURCE}
-    """

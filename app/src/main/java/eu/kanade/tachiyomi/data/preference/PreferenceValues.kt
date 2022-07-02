@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.preference
 import eu.kanade.tachiyomi.R
 
 const val DEVICE_ONLY_ON_WIFI = "wifi"
+const val DEVICE_NETWORK_NOT_METERED = "network_not_metered"
 const val DEVICE_CHARGING = "ac"
 const val DEVICE_BATTERY_NOT_LOW = "battery_not_low"
 
@@ -29,13 +30,14 @@ object PreferenceValues {
     enum class AppTheme(val titleResId: Int?) {
         DEFAULT(R.string.label_default),
         MONET(R.string.theme_monet),
+        GREEN_APPLE(R.string.theme_greenapple),
+        LAVENDER(R.string.theme_lavender),
         MIDNIGHT_DUSK(R.string.theme_midnightdusk),
         STRAWBERRY_DAIQUIRI(R.string.theme_strawberrydaiquiri),
-        YOTSUBA(R.string.theme_yotsuba),
         TAKO(R.string.theme_tako),
-        GREEN_APPLE(R.string.theme_greenapple),
         TEALTURQUOISE(R.string.theme_tealturquoise),
         YINYANG(R.string.theme_yinyang),
+        YOTSUBA(R.string.theme_yotsuba),
 
         // Deprecated
         DARK_BLUE(null),

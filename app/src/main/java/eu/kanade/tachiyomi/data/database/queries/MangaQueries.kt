@@ -1,20 +1,12 @@
 package eu.kanade.tachiyomi.data.database.queries
 
-import com.pushtorefresh.storio.Queries
-import com.pushtorefresh.storio.sqlite.operations.get.PreparedGetListOfObjects
-import com.pushtorefresh.storio.sqlite.queries.DeleteQuery
 import com.pushtorefresh.storio.sqlite.queries.Query
 import com.pushtorefresh.storio.sqlite.queries.RawQuery
 import eu.kanade.tachiyomi.data.database.DbProvider
 import eu.kanade.tachiyomi.data.database.models.LibraryManga
 import eu.kanade.tachiyomi.data.database.models.Manga
-import eu.kanade.tachiyomi.data.database.models.SourceIdMangaCount
 import eu.kanade.tachiyomi.data.database.resolvers.LibraryMangaGetResolver
-import eu.kanade.tachiyomi.data.database.resolvers.MangaCoverLastModifiedPutResolver
-import eu.kanade.tachiyomi.data.database.resolvers.MangaFavoritePutResolver
 import eu.kanade.tachiyomi.data.database.resolvers.MangaFlagsPutResolver
-import eu.kanade.tachiyomi.data.database.resolvers.MangaLastUpdatedPutResolver
-import eu.kanade.tachiyomi.data.database.resolvers.SourceIdMangaCountGetResolver
 import eu.kanade.tachiyomi.data.database.tables.CategoryTable
 import eu.kanade.tachiyomi.data.database.tables.ChapterTable
 import eu.kanade.tachiyomi.data.database.tables.MangaCategoryTable
@@ -33,36 +25,16 @@ interface MangaQueries : DbProvider {
         .withGetResolver(LibraryMangaGetResolver.INSTANCE)
         .prepare()
 
-    fun getDuplicateLibraryManga(manga: Manga) = db.get()
-        .`object`(Manga::class.java)
+    fun getFavoriteMangas() = db.get()
+        .listOfObjects(Manga::class.java)
         .withQuery(
             Query.builder()
                 .table(MangaTable.TABLE)
-                .where("${MangaTable.COL_FAVORITE} = 1 AND LOWER(${MangaTable.COL_TITLE}) = ? AND ${MangaTable.COL_SOURCE} != ?")
-                .whereArgs(
-                    manga.title.lowercase(),
-                    manga.source,
-                )
-                .limit(1)
+                .where("${MangaTable.COL_FAVORITE} = ?")
+                .whereArgs(1)
                 .build(),
         )
         .prepare()
-
-    fun getFavoriteMangas(sortByTitle: Boolean = true): PreparedGetListOfObjects<Manga> {
-        var queryBuilder = Query.builder()
-            .table(MangaTable.TABLE)
-            .where("${MangaTable.COL_FAVORITE} = ?")
-            .whereArgs(1)
-
-        if (sortByTitle) {
-            queryBuilder = queryBuilder.orderBy(MangaTable.COL_TITLE)
-        }
-
-        return db.get()
-            .listOfObjects(Manga::class.java)
-            .withQuery(queryBuilder.build())
-            .prepare()
-    }
 
     fun getManga(url: String, sourceId: Long) = db.get()
         .`object`(Manga::class.java)
@@ -86,17 +58,6 @@ interface MangaQueries : DbProvider {
         )
         .prepare()
 
-    fun getSourceIdsWithNonLibraryManga() = db.get()
-        .listOfObjects(SourceIdMangaCount::class.java)
-        .withQuery(
-            RawQuery.builder()
-                .query(getSourceIdsWithNonLibraryMangaQuery())
-                .observesTables(MangaTable.TABLE)
-                .build(),
-        )
-        .withGetResolver(SourceIdMangaCountGetResolver.INSTANCE)
-        .prepare()
-
     fun insertManga(manga: Manga) = db.put().`object`(manga).prepare()
 
     fun insertMangas(mangas: List<Manga>) = db.put().objects(mangas).prepare()
@@ -114,31 +75,6 @@ interface MangaQueries : DbProvider {
     fun updateViewerFlags(manga: Manga) = db.put()
         .`object`(manga)
         .withPutResolver(MangaFlagsPutResolver(MangaTable.COL_VIEWER, Manga::viewer_flags))
-        .prepare()
-
-    fun updateLastUpdated(manga: Manga) = db.put()
-        .`object`(manga)
-        .withPutResolver(MangaLastUpdatedPutResolver())
-        .prepare()
-
-    fun updateMangaFavorite(manga: Manga) = db.put()
-        .`object`(manga)
-        .withPutResolver(MangaFavoritePutResolver())
-        .prepare()
-
-    fun updateMangaCoverLastModified(manga: Manga) = db.put()
-        .`object`(manga)
-        .withPutResolver(MangaCoverLastModifiedPutResolver())
-        .prepare()
-
-    fun deleteMangasNotInLibraryBySourceIds(sourceIds: List<Long>) = db.delete()
-        .byQuery(
-            DeleteQuery.builder()
-                .table(MangaTable.TABLE)
-                .where("${MangaTable.COL_FAVORITE} = ? AND ${MangaTable.COL_SOURCE} IN (${Queries.placeholders(sourceIds.size)})")
-                .whereArgs(0, *sourceIds.toTypedArray())
-                .build(),
-        )
         .prepare()
 
     fun getLastReadManga() = db.get()

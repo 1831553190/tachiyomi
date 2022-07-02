@@ -30,7 +30,7 @@ import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
-import androidx.core.transition.addListener
+import androidx.core.transition.doOnEnd
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -231,12 +231,18 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         super.onSaveInstanceState(outState)
     }
 
+    override fun onPause() {
+        presenter.saveCurrentChapterReadingProgress()
+        super.onPause()
+    }
+
     /**
      * Set menu visibility again on activity resume to apply immersive mode again if needed.
      * Helps with rotations.
      */
     override fun onResume() {
         super.onResume()
+        presenter.setReadStartTime()
         setMenuVisibility(menuVisible, animate = false)
     }
 
@@ -360,15 +366,16 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         }
 
         // Init listeners on bottom menu
-        binding.pageSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-            override fun onStartTrackingTouch(slider: Slider) {
-                isScrollingThroughPages = true
-            }
+        binding.pageSlider.addOnSliderTouchListener(
+            object : Slider.OnSliderTouchListener {
+                override fun onStartTrackingTouch(slider: Slider) {
+                    isScrollingThroughPages = true
+                }
 
-            override fun onStopTrackingTouch(slider: Slider) {
-                isScrollingThroughPages = false
-            }
-        },
+                override fun onStopTrackingTouch(slider: Slider) {
+                    isScrollingThroughPages = false
+                }
+            },
         )
         binding.pageSlider.addOnChangeListener { slider, value, fromUser ->
             if (viewer != null && fromUser) {
@@ -615,9 +622,9 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
         updateCropBordersShortcut()
         if (window.sharedElementEnterTransition is MaterialContainerTransform) {
             // Wait until transition is complete to avoid crash on API 26
-            window.sharedElementEnterTransition.addListener(
-                onEnd = { setOrientation(presenter.getMangaOrientationType()) },
-            )
+            window.sharedElementEnterTransition.doOnEnd {
+                setOrientation(presenter.getMangaOrientationType())
+            }
         } else {
             setOrientation(presenter.getMangaOrientationType())
         }
@@ -871,7 +878,7 @@ class ReaderActivity : BaseRxActivity<ReaderPresenter>() {
      * cover to the presenter.
      */
     fun setAsCover(page: ReaderPage) {
-        presenter.setAsCover(page)
+        presenter.setAsCover(this, page)
     }
 
     /**

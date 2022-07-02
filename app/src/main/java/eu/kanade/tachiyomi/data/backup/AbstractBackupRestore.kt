@@ -2,14 +2,14 @@ package eu.kanade.tachiyomi.data.backup
 
 import android.content.Context
 import android.net.Uri
+import eu.kanade.data.DatabaseHandler
+import eu.kanade.data.chapter.NoChaptersException
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Chapter
 import eu.kanade.tachiyomi.data.database.models.Manga
 import eu.kanade.tachiyomi.data.database.models.Track
 import eu.kanade.tachiyomi.data.track.TrackManager
 import eu.kanade.tachiyomi.source.Source
-import eu.kanade.tachiyomi.util.chapter.NoChaptersException
 import eu.kanade.tachiyomi.util.system.createFileInCacheDir
 import kotlinx.coroutines.Job
 import uy.kohesive.injekt.injectLazy
@@ -20,7 +20,7 @@ import java.util.Locale
 
 abstract class AbstractBackupRestore<T : AbstractBackupManager>(protected val context: Context, protected val notifier: BackupNotifier) {
 
-    protected val db: DatabaseHelper by injectLazy()
+    protected val handler: DatabaseHandler by injectLazy()
     protected val trackManager: TrackManager by injectLazy()
 
     var job: Job? = null
@@ -87,11 +87,26 @@ abstract class AbstractBackupRestore<T : AbstractBackupManager>(protected val co
      */
     internal suspend fun updateTracking(manga: Manga, tracks: List<Track>) {
         tracks.forEach { track ->
-            val service = trackManager.getService(track.sync_id)
+            val service = trackManager.getService(track.sync_id.toLong())
             if (service != null && service.isLogged) {
                 try {
                     val updatedTrack = service.refresh(track)
-                    db.insertTrack(updatedTrack).executeAsBlocking()
+                    handler.await {
+                        manga_syncQueries.insert(
+                            updatedTrack.manga_id,
+                            updatedTrack.sync_id.toLong(),
+                            updatedTrack.media_id,
+                            updatedTrack.library_id,
+                            updatedTrack.title,
+                            updatedTrack.last_chapter_read.toDouble(),
+                            updatedTrack.total_chapters.toLong(),
+                            updatedTrack.status.toLong(),
+                            updatedTrack.score,
+                            updatedTrack.tracking_url,
+                            updatedTrack.started_reading_date,
+                            updatedTrack.finished_reading_date,
+                        )
+                    }
                 } catch (e: Exception) {
                     errors.add(Date() to "${manga.title} - ${e.message}")
                 }

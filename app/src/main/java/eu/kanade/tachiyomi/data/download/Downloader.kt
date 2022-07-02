@@ -252,7 +252,7 @@ class Downloader(
         val chaptersWithoutDir = async {
             chapters
                 // Filter out those already downloaded.
-                .filter { provider.findChapterDir(it, manga, source) == null }
+                .filter { provider.findChapterDir(it.name, it.scanlator, manga.title, source) == null }
                 // Add chapters to queue from the start.
                 .sortedByDescending { it.source_order }
         }
@@ -278,7 +278,8 @@ class Downloader(
                 val maxDownloadsFromSource = queue
                     .groupBy { it.source }
                     .filterKeys { it !is UnmeteredSource }
-                    .maxOf { it.value.size }
+                    .maxOfOrNull { it.value.size }
+                    ?: 0
                 if (
                     queuedDownloads > DOWNLOADS_QUEUED_WARNING_THRESHOLD ||
                     maxDownloadsFromSource > CHAPTERS_PER_SOURCE_QUEUE_WARNING_THRESHOLD
@@ -302,7 +303,7 @@ class Downloader(
      * @param download the chapter to be downloaded.
      */
     private fun downloadChapter(download: Download): Observable<Download> = Observable.defer {
-        val mangaDir = provider.getMangaDir(download.manga, download.source)
+        val mangaDir = provider.getMangaDir(download.manga.title, download.source)
 
         val availSpace = DiskUtil.getAvailableStorageSpace(mangaDir)
         if (availSpace != -1L && availSpace < MIN_DISK_SPACE) {
@@ -311,7 +312,7 @@ class Downloader(
             return@defer Observable.just(download)
         }
 
-        val chapterDirname = provider.getChapterDirName(download.chapter)
+        val chapterDirname = provider.getChapterDirName(download.chapter.name, download.chapter.scanlator)
         val tmpDir = mangaDir.createDirectory(chapterDirname + TMP_DIR_SUFFIX)
 
         val pageListObservable = if (download.pages == null) {
@@ -392,7 +393,10 @@ class Downloader(
         return pageObservable
             // When the page is ready, set page path, progress (just in case) and status
             .doOnNext { file ->
-                splitTallImageIfNeeded(page, tmpDir)
+                val success = splitTallImageIfNeeded(page, tmpDir)
+                if (success.not()) {
+                    notifier.onError(context.getString(R.string.download_notifier_split_failed), download.chapter.name, download.manga.title)
+                }
                 page.uri = file.uri
                 page.progress = 100
                 download.downloadedImages++
@@ -477,8 +481,8 @@ class Downloader(
         return MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "jpg"
     }
 
-    private fun splitTallImageIfNeeded(page: Page, tmpDir: UniFile) {
-        if (!preferences.splitTallImages().get()) return
+    private fun splitTallImageIfNeeded(page: Page, tmpDir: UniFile): Boolean {
+        if (!preferences.splitTallImages().get()) return true
 
         val filename = String.format("%03d", page.number)
         val imageFile = tmpDir.listFiles()?.find { it.name!!.startsWith(filename) }
@@ -487,8 +491,9 @@ class Downloader(
             ?: throw Error(context.getString(R.string.download_notifier_split_page_path_not_found, page.number))
 
         // check if the original page was previously splitted before then skip.
-        if (imageFile.name!!.contains("__")) return
-        ImageUtil.splitTallImage(imageFile, imageFilePath)
+        if (imageFile.name!!.contains("__")) return true
+
+        return ImageUtil.splitTallImage(imageFile, imageFilePath)
     }
 
     /**

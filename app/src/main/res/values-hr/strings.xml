@@ -8,8 +8,6 @@
     <string name="lock_never">Nikada</string>
     <string name="lock_always">Uvijek</string>
     <string name="pref_fullscreen">Cjeloekranski prikaz</string>
-    <string name="ext_language_info">Jezik: %1$s</string>
-    <string name="ext_version_info">Verzija: %1$s</string>
     <string name="obsolete_extension_message">Ovo proširenje više nije dostupno.</string>
     <string name="untrusted_extension_message">Ovo proširenje potpisano je nepovjerljivim certifikatom i nije aktivirano.
 \n
@@ -61,7 +59,6 @@
     <string name="pref_manage_notifications">Upravljaj obavijestima</string>
     <string name="pref_confirm_exit">Potvrdi zatvaranje programa</string>
     <string name="pref_date_format">Format datuma</string>
-    <string name="pref_start_screen">Početni ekran</string>
     <string name="theme_system">Slijedi sustav</string>
     <string name="theme_dark">Uključeno</string>
     <string name="theme_light">Isključeno</string>
@@ -153,7 +150,6 @@
     <string name="action_global_search">Globalna pretraga</string>
     <string name="action_search">Traži</string>
     <string name="action_sort_latest_chapter">Najnovije poglavlje</string>
-    <string name="action_sort_last_checked">Zadnji put provjereno</string>
     <string name="action_sort_last_read">Zadnje čitano</string>
     <string name="action_sort_total">Ukupan broj poglavlja</string>
     <string name="action_sort_alpha">Abecednim redom</string>
@@ -429,9 +425,6 @@
     <string name="creating_backup">Stvaranje sigurnosne kopije</string>
     <string name="backup_choice">Što želiš spremiti kao sigurnosnu kopiju\?</string>
     <string name="backup_in_progress">Spremanje sigurnosne kopije je već u tijeku</string>
-    <string name="backup_restore_content">Obnavljanje koristi izvore za dohvaćanje podataka, može prouzročiti troškove.
-\n
-\nPrije obnavljanja, provjeri jesu li instalirana sva potrebna proširenja i da si prijavljen/a u izvorima i uslugama za praćenje.</string>
     <string name="information_cloudflare_bypass_failure">Neuspjelo zaobilaženje Cloudflare-a</string>
     <string name="description_cover">Naslovnica mange</string>
     <plurals name="update_check_notification_ext_updates">
@@ -465,10 +458,8 @@
     </plurals>
     <string name="backup_restore_missing_sources">Nedostaju izvori:</string>
     <string name="invalid_backup_file_missing_manga">Sigurnosna kopija ne sadrži nijedan manga.</string>
-    <string name="invalid_backup_file_missing_data">Datoteci nedostaju podaci.</string>
     <string name="invalid_backup_file">Neispravna datoteka sigurnosne kopije</string>
     <string name="tracker_not_logged_in">Neprijavljeno: %1$s</string>
-    <string name="source_not_found_name">Izvor nije pronađen: %1$s</string>
     <string name="tracking_info">Jednosmjerna sinkronizacija za aktualiziranje napretka poglavlja u usluzi praćenja. Postavi praćenje pojedinačnih unosa manga putem gumba za praćenje.</string>
     <string name="unofficial_extension_message">Ovo proširenje nije sa službenog popisa Tachiyomi proširenja.</string>
     <string name="ext_unofficial">Neslužbeno</string>
@@ -502,7 +493,6 @@
     <string name="pref_read_with_tapping_inverted">Preokreni dodirivanje</string>
     <string name="unknown_status">Nepoznato stanje</string>
     <string name="unknown_author">Nepoznat autor</string>
-    <string name="pref_jump_to_chapters">Skoči na poglavlja nakon pokretanja</string>
     <string name="action_download_unread">Preuzmi nepročitana poglavlja</string>
     <string name="updated_version">Aktualizirano na v%1$s</string>
     <string name="whats_new">Što je novo</string>
@@ -542,7 +532,6 @@
     <string name="action_search_settings">Postavke pretrage</string>
     <string name="manga_from_library">Manga iz biblioteke</string>
     <string name="downloaded_chapters">Preuzeta poglavlja</string>
-    <string name="pref_hide_bottom_bar_on_scroll">Sakrij donju traku pri klizanju</string>
     <string name="pref_incognito_mode">Anonimni modus</string>
     <string name="pref_incognito_mode_summary">Zaustavlja čitanje povijesti</string>
     <string name="pref_clear_history">Izbriši povijest</string>

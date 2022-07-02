@@ -19,7 +19,6 @@
     <string name="pref_manage_notifications">ಸೂಚನೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ</string>
     <string name="pref_confirm_exit">ನಿರ್ಗಮನವನ್ನು ಖಚಿತಪಡಿಸಿ</string>
     <string name="pref_date_format">ದಿನಾಂಕ ಸ್ವರೂಪ</string>
-    <string name="pref_start_screen">ಮೊದಲ ಪುಟ</string>
     <string name="theme_system">ಸಿಸ್ಟಮ್ ಅನುಕರಿಸಿ</string>
     <string name="theme_dark">ಆನ್</string>
     <string name="theme_light">ಆಫ</string>
@@ -91,7 +90,6 @@
     <string name="action_global_search">ಎಲ್ಲೆಡೆ ಹುಡುಕಿ</string>
     <string name="action_search">ಹುಡುಕಿ</string>
     <string name="action_sort_latest_chapter">ಇತ್ತೀಚಿನ ಅಧ್ಯಾಯ</string>
-    <string name="action_sort_last_checked">ಕೊನೆಯದಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದ</string>
     <string name="action_sort_last_read">ಕೊನೆಯದಾಗಿ ಓದಿದ</string>
     <string name="action_sort_total">ಒಟ್ಟು ಅಧ್ಯಾಯಗಳು</string>
     <string name="action_sort_alpha">ವರ್ಣಮಾಲೆಯ ಪ್ರಕಾರ</string>
@@ -223,8 +221,6 @@
     <string name="pref_page_transitions">ಪುಟ ಪರಿವರ್ತನೆಗಳನ್ನು ಅನಿಮೇಟ್ ಮಾಡಿ</string>
     <string name="pref_cutout_short">ಕಟೌಟ್ ಆದಂತಹ ಪ್ರದೇಶದಲ್ಲಿ ವಿಷಯವನ್ನು ತೋರಿಸಿ</string>
     <string name="pref_fullscreen">ಪೂರ್ಣ ಪರದೆ</string>
-    <string name="ext_version_info">ಆವೃತ್ತಿ: %1$s</string>
-    <string name="ext_language_info">ಭಾಷೆ: %1$s</string>
     <string name="obsolete_extension_message">ಈ ವಿಸ್ತರಣೆ ಇನ್ನು ಮುಂದೆ ಲಭ್ಯವಿಲ್ಲ.</string>
     <string name="untrusted_extension_message">ಈ ವಿಸ್ತರಣೆಯನ್ನು ವಿಶ್ವಾಸಾರ್ಹವಲ್ಲದ ಪ್ರಮಾಣಪತ್ರದೊಂದಿಗೆ ಸಹಿ ಮಾಡಲಾಗಿದೆ ಮತ್ತು ಅದನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿಲ್ಲ.
 \n
@@ -452,19 +448,14 @@
     <string name="creating_backup">ಬ್ಯಾಕಪ್ ರಚಿಸಲಾಗುತ್ತಿದೆ</string>
     <string name="backup_choice">ನೀವು ಏನು ಬ್ಯಾಕಪ್ ಮಾಡಲು ಬಯಸುತ್ತೀರಿ\?</string>
     <string name="backup_in_progress">ಬ್ಯಾಕಪ್ ಈಗಾಗಲೇ ಪ್ರಗತಿಯಲ್ಲಿದೆ</string>
-    <string name="backup_restore_content">ಗ್ರಂಥಾಲಯವನ್ನು ಮರುಸ್ಥಾಪಿಸುವಾಗ ವಿಸ್ತರಣೆಯಿಂದ ಡೇಟಾವನ್ನು ಪಡೆದುಕೊಳ್ಳಲಾಗುತ್ತದೆ ಅದಕ್ಕೆ ಹೆಚ್ಚಿನ ಇಂಟರ್ನೆಟ್ ಶುಲ್ಕ ತಗಲಬಹುದು.
-\n
-\nನೀವು ಅಗತ್ಯವಿರುವ ಎಲ್ಲಾ ವಿಸ್ತರಣೆಗಳನ್ನು ಸ್ಥಾಪಿಸಿದ್ದೀರಿ ಮತ್ತು ಮರುಸ್ಥಾಪಿಸುವ ಮೊದಲು ಮೂಲಗಳು ಮತ್ತು ಟ್ರ್ಯಾಕಿಂಗ್ ಸೇವೆಗಳಿಗೆ ಲಾಗ್ ಇನ್ ಆಗಿದ್ದೀರಿ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.</string>
     <string name="unofficial_extension_message">ಈ ವಿಸ್ತರಣೆಯು ಅಧಿಕೃತ ತಚಿಯೋಮಿ ವಿಸ್ತರಣೆಗಳ ಪಟ್ಟಿಯಿಂದಲ್ಲ.</string>
     <string name="ext_unofficial">ಅನಧಿಕೃತ</string>
     <string name="sort_by_upload_date">ಅಪ್‌ಲೋಡ್ ದಿನಾಂಕದ ಮೂಲಕ</string>
     <string name="label_data">ಡೇಟಾ</string>
     <string name="backup_restore_missing_sources">ಕಾಣೆಯಾದ ಮೂಲಗಳು:</string>
     <string name="invalid_backup_file_missing_manga">ಬ್ಯಾಕಪ್ ಯಾವುದೇ ಮಾಂಗಾವನ್ನು ಹೊಂದಿಲ್ಲ.</string>
-    <string name="invalid_backup_file_missing_data">ಫೈಲ್ ಡೇಟಾ ಕಾಣೆಯಾಗಿದೆ.</string>
     <string name="invalid_backup_file">ಬ್ಯಾಕಪ್ ಫೈಲ್ ಅಮಾನ್ಯವಾಗಿದೆ</string>
     <string name="tracker_not_logged_in">ಲಾಗ್ ಇನ್ ಆಗಿಲ್ಲ: %1$s</string>
-    <string name="source_not_found_name">ಮೂಲ ಕಂಡುಬಂದಿಲ್ಲ: %1$s</string>
     <string name="pref_library_update_refresh_metadata_summary">ಗ್ರಂಥಾಲಯವನ್ನು ನವೀಕರಿಸುವಾಗ ಹೊಸ ಕವರ್ ಮತ್ತು ವಿವರಗಳಿಗಾಗಿ ಪರಿಶೀಲಿಸಿ</string>
     <string name="pref_library_update_refresh_metadata">ಮೆಟಾಡೇಟಾವನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ರಿಫ್ರೆಶ್ ಮಾಡಿ</string>
     <string name="action_migrate">ಮೂಲ ಸ್ಥಳಾಂತರ</string>
@@ -498,7 +489,6 @@
     <string name="requires_app_restart">ಅನ್ವಯಿಸಲು ಅಪ್ಲಿಕೇಶನ್ ಮರುಪ್ರಾರಂಭದ ಅಗತ್ಯವಿದೆ</string>
     <string name="label_network">ಅಡ್ವಾನ್ಸ್ಡ್ ಸೆಕ್ಷನ್</string>
     <string name="pref_category_reading_mode">ಓದುವ ಮೊಡ್</string>
-    <string name="pref_jump_to_chapters">ಓಪನ್ ಮಾಡಿದ ಮೇಲೆ ಅಧ್ಯಯಕ್ಕೆ ಹೋಗಿ</string>
     <string name="pref_category_theme">ಜನರಲ್ ಸೆಲೆಕ್ಷನ್</string>
     <string name="action_download_unread">ಓದದಿರುವ ಅಧ್ಯಾಯಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ</string>
     <string name="action_sort_date_added">ಹಾಕಿದ್ದ ದಿನಾಂಕ</string>
@@ -530,7 +520,6 @@
     <string name="pref_category_delete_chapters">ಅಧ್ಯಾಯಗಳನ್ನು ಅಳಿಸಿ</string>
     <string name="ext_nsfw_warning">NSFW (18+) ವಿಷಯವನ್ನು ಹೊಂದಿರಬಹುದು</string>
     <string name="ext_nsfw_short">18+</string>
-    <string name="pref_hide_bottom_bar_on_scroll">ಸ್ಕ್ರಾಲ್‌ ಮಾಡಿದಾಗ ಕೆಳಗಿನ ಪಟ್ಟಿಯನ್ನು ಮರೆಮಾಡಿ</string>
     <string name="action_search_settings">ಸಂಯೋಜನೆಗಳಲ್ಲಿ ಹುಡುಕಿ</string>
     <string name="spen_next_page">ಮುಂದಿನ ಪುಟ</string>
     <string name="spen_previous_page">ಹಿಂದಿನ ಪುಟ</string>

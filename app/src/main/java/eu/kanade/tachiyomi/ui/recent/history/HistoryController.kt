@@ -34,7 +34,7 @@ class HistoryController : ComposeController<HistoryPresenter>(), RootController 
             nestedScrollInterop = nestedScrollInterop,
             presenter = presenter,
             onClickCover = { history ->
-                router.pushController(MangaController(history))
+                router.pushController(MangaController(history.mangaId))
             },
             onClickResume = { history ->
                 presenter.getNextChapterForManga(history.mangaId, history.chapterId)
@@ -90,5 +90,9 @@ class HistoryController : ComposeController<HistoryPresenter>(), RootController 
         } else {
             activity.toast(R.string.no_next_chapter)
         }
+    }
+
+    fun resumeLastChapterRead() {
+        presenter.resumeLastChapterRead()
     }
 }

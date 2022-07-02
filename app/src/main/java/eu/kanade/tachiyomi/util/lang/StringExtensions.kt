@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.util.lang
 
+import androidx.core.text.parseAsHtml
 import net.greypanther.natsort.CaseInsensitiveSimpleNaturalComparator
 import java.nio.charset.StandardCharsets
 import kotlin.math.floor
@@ -56,4 +57,11 @@ fun String.takeBytes(n: Int): String {
     } else {
         bytes.decodeToString(endIndex = n).replace("\uFFFD", "")
     }
+}
+
+/**
+ * HTML-decode the string
+ */
+fun String.htmlDecode(): String {
+    return this.parseAsHtml().toString()
 }

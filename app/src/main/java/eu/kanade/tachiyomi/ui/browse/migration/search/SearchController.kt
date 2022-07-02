@@ -83,8 +83,8 @@ class SearchController(
         binding.progress.isVisible = isReplacingManga
         if (!isReplacingManga) {
             router.popController(this)
-            if (newManga != null) {
-                val newMangaController = RouterTransaction.with(MangaController(newManga))
+            if (newManga?.id != null) {
+                val newMangaController = RouterTransaction.with(MangaController(newManga.id!!))
                 if (router.backstack.lastOrNull()?.controller is MangaController) {
                     // Replace old MangaController
                     router.replaceTopController(newMangaController)
@@ -104,7 +104,7 @@ class SearchController(
         override fun onCreateDialog(savedViewState: Bundle?): Dialog {
             val prefValue = preferences.migrateFlags().get()
             val enabledFlagsPositions = MigrationFlags.getEnabledFlagsPositions(prefValue)
-            val items = MigrationFlags.titles
+            val items = MigrationFlags.titles(manga)
                 .map { resources?.getString(it) }
                 .toTypedArray()
             val selected = items
@@ -138,7 +138,10 @@ class SearchController(
                     }
                     (targetController as? SearchController)?.copyManga(manga, newManga)
                 }
-                .setNeutralButton(android.R.string.cancel, null)
+                .setNeutralButton(activity?.getString(R.string.action_show_manga)) { _, _ ->
+                    dismissDialog()
+                    router.pushController(MangaController(newManga!!.id!!))
+                }
                 .create()
         }
     }

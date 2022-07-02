@@ -16,9 +16,11 @@ import androidx.core.graphics.alpha
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.blue
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
 import androidx.core.graphics.green
 import androidx.core.graphics.red
 import com.hippo.unifile.UniFile
+import logcat.LogPriority
 import tachiyomi.decoder.Format
 import tachiyomi.decoder.ImageDecoder
 import java.io.BufferedInputStream
@@ -182,7 +184,7 @@ object ImageUtil {
      *
      * @return true if the height:width ratio is greater than 3.
      */
-    fun isTallImage(imageStream: InputStream): Boolean {
+    private fun isTallImage(imageStream: InputStream): Boolean {
         val options = extractImageOptions(imageStream, false)
         return (options.outHeight / options.outWidth) > 3
     }
@@ -190,9 +192,9 @@ object ImageUtil {
     /**
      * Splits tall images to improve performance of reader
      */
-    fun splitTallImage(imageFile: UniFile, imageFilePath: String) {
+    fun splitTallImage(imageFile: UniFile, imageFilePath: String): Boolean {
         if (isAnimatedAndSupported(imageFile.openInputStream()) || !isTallImage(imageFile.openInputStream())) {
-            return
+            return true
         }
 
         val options = extractImageOptions(imageFile.openInputStream(), false).apply { inJustDecodeBounds = false }
@@ -200,9 +202,9 @@ object ImageUtil {
         val imageHeight = options.outHeight
         val imageWidth = options.outWidth
 
-        val splitHeight = getDisplayHeightInPx
+        val splitHeight = getDisplayMaxHeightInPx
         // -1 so it doesn't try to split when imageHeight = getDisplayHeightInPx
-        val partCount = (imageHeight - 1) / getDisplayHeightInPx + 1
+        val partCount = (imageHeight - 1) / getDisplayMaxHeightInPx + 1
 
         logcat { "Splitting ${imageHeight}px height image into $partCount part with estimated ${splitHeight}px per height" }
 
@@ -211,6 +213,11 @@ object ImageUtil {
         } else {
             @Suppress("DEPRECATION")
             BitmapRegionDecoder.newInstance(imageFile.openInputStream(), false)
+        }
+
+        if (bitmapRegionDecoder == null) {
+            logcat { "Failed to create new instance of BitmapRegionDecoder" }
+            return false
         }
 
         try {
@@ -225,19 +232,21 @@ object ImageUtil {
                 val region = Rect(0, topOffset, imageWidth, bottomOffset)
 
                 FileOutputStream(splitPath).use { outputStream ->
-                    val splitBitmap = bitmapRegionDecoder!!.decodeRegion(region, options)
+                    val splitBitmap = bitmapRegionDecoder.decodeRegion(region, options)
                     splitBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
                 }
             }
             imageFile.delete()
+            return true
         } catch (e: Exception) {
             // Image splits were not successfully saved so delete them and keep the original image
             (0 until partCount)
-                .map { imageFile.filePath!!.substringBeforeLast(".") + "__${"%03d".format(it + 1)}.jpg" }
+                .map { imageFilePath.substringBeforeLast(".") + "__${"%03d".format(it + 1)}.jpg" }
                 .forEach { File(it).delete() }
-            throw e
+            logcat(LogPriority.ERROR, e)
+            return false
         } finally {
-            bitmapRegionDecoder?.recycle()
+            bitmapRegionDecoder.recycle()
         }
     }
 
@@ -265,14 +274,14 @@ object ImageUtil {
         val leftOffsetX = left - offsetX
         val rightOffsetX = right + offsetX
 
-        val topLeftPixel = image.getPixel(left, top)
-        val topRightPixel = image.getPixel(right, top)
-        val midLeftPixel = image.getPixel(left, midY)
-        val midRightPixel = image.getPixel(right, midY)
-        val topCenterPixel = image.getPixel(midX, top)
-        val botLeftPixel = image.getPixel(left, bot)
-        val bottomCenterPixel = image.getPixel(midX, bot)
-        val botRightPixel = image.getPixel(right, bot)
+        val topLeftPixel = image[left, top]
+        val topRightPixel = image[right, top]
+        val midLeftPixel = image[left, midY]
+        val midRightPixel = image[right, midY]
+        val topCenterPixel = image[midX, top]
+        val botLeftPixel = image[left, bot]
+        val bottomCenterPixel = image[midX, bot]
+        val botRightPixel = image[right, bot]
 
         val topLeftIsDark = topLeftPixel.isDark()
         val topRightIsDark = topRightPixel.isDark()
@@ -325,8 +334,8 @@ object ImageUtil {
             var whiteStreak = false
             val notOffset = x == left || x == right
             inner@ for ((index, y) in (0 until image.height step image.height / 25).withIndex()) {
-                val pixel = image.getPixel(x, y)
-                val pixelOff = image.getPixel(x + (if (x < image.width / 2) -offsetX else offsetX), y)
+                val pixel = image[x, y]
+                val pixelOff = image[x + (if (x < image.width / 2) -offsetX else offsetX), y]
                 if (pixel.isWhite()) {
                     whitePixelsStreak++
                     whitePixels++
@@ -417,8 +426,8 @@ object ImageUtil {
         val topCornersIsDark = topLeftIsDark && topRightIsDark
         val botCornersIsDark = botLeftIsDark && botRightIsDark
 
-        val topOffsetCornersIsDark = image.getPixel(leftOffsetX, top).isDark() && image.getPixel(rightOffsetX, top).isDark()
-        val botOffsetCornersIsDark = image.getPixel(leftOffsetX, bot).isDark() && image.getPixel(rightOffsetX, bot).isDark()
+        val topOffsetCornersIsDark = image[leftOffsetX, top].isDark() && image[rightOffsetX, top].isDark()
+        val botOffsetCornersIsDark = image[leftOffsetX, bot].isDark() && image[rightOffsetX, bot].isDark()
 
         val gradient = when {
             darkBG && botCornersIsWhite -> {

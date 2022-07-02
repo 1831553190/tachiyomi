@@ -27,9 +27,7 @@ class UpdatesHolder(private val view: View, private val adapter: UpdatesAdapter)
             adapter.coverClickListener.onCoverClick(bindingAdapterPosition)
         }
 
-        binding.download.setOnClickListener {
-            onDownloadClick(it, bindingAdapterPosition)
-        }
+        binding.download.listener = downloadActionListener
     }
 
     fun bind(item: UpdatesItem) {
@@ -46,12 +44,12 @@ class UpdatesHolder(private val view: View, private val adapter: UpdatesAdapter)
         } else {
             binding.mangaTitle.setTextColor(adapter.unreadColor)
             binding.chapterTitle.setTextColor(
-                if (item.bookmark) adapter.bookmarkedColor else adapter.unreadColorSecondary,
+                if (item.chapter.bookmark) adapter.bookmarkedColor else adapter.unreadColorSecondary,
             )
         }
 
         // Set bookmark status
-        binding.bookmarkIcon.isVisible = item.bookmark
+        binding.bookmarkIcon.isVisible = item.chapter.bookmark
 
         // Set chapter status
         binding.download.isVisible = item.manga.source != LocalSource.ID

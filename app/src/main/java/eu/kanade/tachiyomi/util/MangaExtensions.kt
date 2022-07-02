@@ -1,12 +1,21 @@
 package eu.kanade.tachiyomi.util
 
+import android.content.Context
+import eu.kanade.domain.manga.interactor.UpdateManga
+import eu.kanade.domain.manga.model.isLocal
+import eu.kanade.domain.manga.model.toDbManga
 import eu.kanade.tachiyomi.data.cache.CoverCache
 import eu.kanade.tachiyomi.data.database.DatabaseHelper
 import eu.kanade.tachiyomi.data.database.models.Manga
+import eu.kanade.tachiyomi.data.database.models.toDomainManga
 import eu.kanade.tachiyomi.data.preference.PreferencesHelper
 import eu.kanade.tachiyomi.source.LocalSource
 import eu.kanade.tachiyomi.source.model.SManga
+import uy.kohesive.injekt.Injekt
+import uy.kohesive.injekt.api.get
+import java.io.InputStream
 import java.util.Date
+import eu.kanade.domain.manga.model.Manga as DomainManga
 
 fun Manga.isLocal() = source == LocalSource.ID
 
@@ -36,23 +45,22 @@ fun Manga.prepUpdateCover(coverCache: CoverCache, remoteManga: SManga, refreshSa
     }
 }
 
-fun Manga.hasCustomCover(coverCache: CoverCache): Boolean {
-    return coverCache.getCustomCoverFile(this).exists()
+fun Manga.hasCustomCover(coverCache: CoverCache = Injekt.get()): Boolean {
+    return coverCache.getCustomCoverFile(id).exists()
 }
 
-fun Manga.removeCovers(coverCache: CoverCache) {
-    if (isLocal()) return
+fun Manga.removeCovers(coverCache: CoverCache = Injekt.get()): Int {
+    if (isLocal()) return 0
 
     cover_last_modified = Date().time
-    coverCache.deleteFromCache(this, true)
-}
-
-fun Manga.updateCoverLastModified(db: DatabaseHelper) {
-    cover_last_modified = Date().time
-    db.updateMangaCoverLastModified(this).executeAsBlocking()
+    return coverCache.deleteFromCache(this, true)
 }
 
 fun Manga.shouldDownloadNewChapters(db: DatabaseHelper, prefs: PreferencesHelper): Boolean {
+    return toDomainManga()?.shouldDownloadNewChapters(db, prefs) ?: false
+}
+
+fun DomainManga.shouldDownloadNewChapters(db: DatabaseHelper, prefs: PreferencesHelper): Boolean {
     if (!favorite) return false
 
     // Boolean to determine if user wants to automatically download new chapters.
@@ -67,7 +75,7 @@ fun Manga.shouldDownloadNewChapters(db: DatabaseHelper, prefs: PreferencesHelper
 
     // Get all categories, else default category (0)
     val categoriesForManga =
-        db.getCategoriesForManga(this).executeAsBlocking()
+        db.getCategoriesForManga(toDbManga()).executeAsBlocking()
             .mapNotNull { it.id }
             .takeUnless { it.isEmpty() } ?: listOf(0)
 
@@ -79,4 +87,22 @@ fun Manga.shouldDownloadNewChapters(db: DatabaseHelper, prefs: PreferencesHelper
 
     // In included category
     return categoriesForManga.any { it in includedCategories }
+}
+
+suspend fun DomainManga.editCover(
+    context: Context,
+    stream: InputStream,
+    updateManga: UpdateManga = Injekt.get(),
+    coverCache: CoverCache = Injekt.get(),
+): Boolean {
+    return if (isLocal()) {
+        LocalSource.updateCover(context, toDbManga(), stream)
+        updateManga.awaitUpdateCoverLastModified(id)
+    } else if (favorite) {
+        coverCache.setCustomCoverToCache(toDbManga(), stream)
+        updateManga.awaitUpdateCoverLastModified(id)
+    } else {
+        // We should never reach this block
+        false
+    }
 }
